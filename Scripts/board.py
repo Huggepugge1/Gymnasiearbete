@@ -1,7 +1,8 @@
-from boards import white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings
+from fen_parser import fen_parser
 
 
 def print_board(board):
+    print(bin(white_pieces))
     print("  ---------------------------------------")
     for i in range(8):
         row = board[(i * 8):(i * 8) + 8][::-1]
@@ -64,3 +65,27 @@ def compute_board():
             board[i] = "bk"
 
     return board
+
+
+def set_board(white_pieces_tmp, black_pieces_tmp, pawns_tmp, knights_tmp, bishops_tmp, rooks_tmp, queens_tmp, kings_tmp):
+    global white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings
+    white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings = \
+        white_pieces_tmp, black_pieces_tmp, pawns_tmp, knights_tmp, bishops_tmp, rooks_tmp, queens_tmp, kings_tmp
+
+
+def get_board():
+    global white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings
+    return [white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings]
+
+
+board = fen_parser(input("Input your FEN, (nothing for normal starting position)\n"))
+
+white_pieces = board[0]
+black_pieces = board[1]
+
+pawns = board[2]
+knights = board[3]
+bishops = board[4]
+rooks = board[5]
+queens = board[6]
+kings = board[7]

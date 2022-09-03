@@ -8,7 +8,6 @@ def fen_parser(fen_string):
     fen_string = "".join(reversed(fen_string.split("/")))
     # Current position on board
     square = 0
-    print(fen_string)
     for c in fen_string:
         try:
             c = int(c)
