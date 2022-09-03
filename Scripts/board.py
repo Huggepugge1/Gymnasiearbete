@@ -1,4 +1,7 @@
-def printBoard(board):
+from boards import white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings
+
+
+def print_board(board):
     print("  ---------------------------------------")
     for i in range(8):
         row = board[(i * 8):(i * 8) + 8][::-1]
@@ -8,7 +11,7 @@ def printBoard(board):
         print("  ---------------------------------------")
 
 
-def caluculate_board():
+def compute_board():
     board = ["  " for square in range(64)]
     white_pawns = pawns & white_pieces
     black_pawns = pawns & black_pieces
@@ -195,26 +198,6 @@ def precompute_all_moves(piece):
 
     return moves
 
-
-white_pieces = (1 << 16) -1
-black_pieces = ((1 << 16) - 1) << 48
-
-pawns = (((1 << 8) - 1) << 8) + (((1 << 8) - 1) << 48)
-knights = (1 << 1) + (1 << 6) + (1 << 57) + (1 << 62)
-bishops = (1 << 2) + (1 << 5) + (1 << 58) + (1 << 61)
-rooks = (1) + (1 << 7) + (1 << 56) + (1 << 63)
-queens = (1 << 3) + (1 << 59)
-kings = (1 << 4) + (1 << 60)
-
-white_pawn_moves = precompute_all_moves("white_pawn")
-black_pawn_moves = precompute_all_moves("black_pawn")
-knight_moves = precompute_all_moves("knight")
-bishop_moves = precompute_all_moves("bishop")
-rook_moves = precompute_all_moves("rook")
-queen_moves = precompute_all_moves("queen")
-king_moves = precompute_all_moves("king")
-
-printBoard(caluculate_board())
 
 # pieces
 '''
