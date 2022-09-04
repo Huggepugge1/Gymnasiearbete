@@ -1,10 +1,12 @@
 from board import print_board, compute_board
 from moves import precompute_all_moves, make_move
 
-print(make_move("e7", "e5", 1))
-print(make_move("e2", "e3", 0))
-print(make_move("e5", "e4", 1))
-print(make_move("d2", "d4", 0))
-print(make_move("e4", "d3", 1))
-make_move("c2", "d3", 0)
+make_move("e2", "e4", 0)
+make_move("e1", "e2", 0)
+make_move("e2", "f3", 0)
+make_move("f3", "f4", 0)
+make_move("f4", "f5", 0)
+make_move("f5", "f6", 0)
+make_move("f6", "e7", 0)
+make_move("e7", "e8", 0)
 print_board(compute_board())

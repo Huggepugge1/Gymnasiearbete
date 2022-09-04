@@ -319,43 +319,6 @@ def make_move(start, end, turn):
     return True
 
 
-def validate_capture(start_pos, end_pos, start_mask, end_mask, start_piece, end_piece, color):
-    white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings, white_en_passants, black_en_passants = get_board()
-    move = 0
-    if start_piece == 0:
-        if color == 0:
-            white_pawn_offsets = [7, 9]
-            for offset in white_pawn_offsets:
-                if start_pos + offset < 64 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
-                    move |= 1 << (start_pos + offset)
-
-            white_en_passants_offsets = [7, 9]
-            for offset in white_en_passants_offsets:
-                if start_pos + offset < 64 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
-                    if (1 << (start_pos + offset)) & black_en_passants > 0:
-                        move |= 1 << (start_pos + offset)
-
-        if color == 1:
-            move = 0
-            black_pawn_offsets = [-9, -7]
-            for offset in black_pawn_offsets:
-                if start_pos + offset >= 0 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
-                    move |= 1 << (start_pos + offset)
-
-            black_en_passants_offsets = [-9, -7]
-            for offset in black_en_passants_offsets:
-                if start_pos + offset >= 0 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
-                    if (1 << (start_pos + offset)) & white_en_passants > 0:
-                        move |= 1 << (start_pos + offset)
-    else:
-        assert False, "Not implemented"
-
-    if move & end_mask > 0:
-        return True
-    else:
-        return False
-
-
 def validate_move(start, end, turn):
     white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings, white_en_passants, black_en_passants = get_board()
     # Converts chess format to a number between 0 and 64
@@ -367,6 +330,11 @@ def validate_move(start, end, turn):
     elif not (color == 1) and turn == 1:
         return False
     elif color == -1:
+        return False
+
+    if color == 0 and white_pieces & end_mask > 0:
+        return False
+    elif color == 1 and black_pieces & end_mask > 0:
         return False
 
     if color == 0 and black_pieces & end_mask > 0:
@@ -382,14 +350,86 @@ def validate_move(start, end, turn):
                 return True
         elif color == 1:
             if end_mask & white_en_passants > 0:
-                print("test")
                 return validate_capture(start_pos, end_pos, start_mask, end_mask, start_piece, end_piece, color)
             elif black_pawn_moves[start_pos] & end_mask > 0 and black_pawn_moves[start_pos] & white_pieces == 0:
                 return True
         else:
             return False
+
+    elif start_piece == 1:
+        if knight_moves[start_pos] & end_mask > 0:
+            return True
+        else:
+            return False
+
+    elif start_piece == 5:
+        if king_moves[start_pos] & end_mask > 0:
+            return True
+        else:
+            return False
+
     else:
         assert False, "Not implemented"
+
+
+def validate_capture(start_pos, end_pos, start_mask, end_mask, start_piece, end_piece, color):
+    white_pieces, black_pieces, pawns, knights, bishops, rooks, queens, kings, white_en_passants, black_en_passants = get_board()
+    if start_piece == 0:
+        move = 0
+        if color == 0:
+            white_pawn_offsets = [7, 9]
+            for offset in white_pawn_offsets:
+                if start_pos + offset < 64 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
+                    move |= 1 << (start_pos + offset)
+
+            white_en_passants_offsets = [7, 9]
+            for offset in white_en_passants_offsets:
+                if start_pos + offset < 64 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
+                    if (1 << (start_pos + offset)) & black_en_passants > 0:
+                        move |= 1 << (start_pos + offset)
+
+        if color == 1:
+            black_pawn_offsets = [-9, -7]
+            for offset in black_pawn_offsets:
+                if start_pos + offset >= 0 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
+                    move |= 1 << (start_pos + offset)
+
+            black_en_passants_offsets = [-9, -7]
+            for offset in black_en_passants_offsets:
+                if start_pos + offset >= 0 and abs((start_pos % 8) - ((start_pos + offset) % 8)) == 1:
+                    if (1 << (start_pos + offset)) & white_en_passants > 0:
+                        move |= 1 << (start_pos + offset)
+
+        if move & end_mask > 0:
+            return True
+        else:
+            return False
+
+    elif start_piece == 1:
+        if knight_moves[start_pos] & end_mask > 0:
+            return True
+        else:
+            return False
+
+    elif start_piece == 5:
+        if king_moves[start_pos] & end_mask > 0:
+            return True
+        else:
+            return False
+
+    else:
+        assert False, "Not implemented"
+
+# Checks if check is present after a move is done
+def check_check():
+    for square in range(64):
+        piece, _, color = check_type(1 << square, 0)
+        if color == 0:
+            assert False, "not implemented"
+        else:
+            assert False, "not implemented"
+
+
 
 
 white_pawn_moves = precompute_all_moves("white_pawn")
