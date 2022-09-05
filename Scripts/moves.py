@@ -54,137 +54,106 @@ def get_start(start, end):
     end_mask = 1 << end_pos
     return start_pos, start_mask, end_pos, end_mask
 
-def precompute_all_moves(piece):
-    moves = []
-    if piece == "white_pawn":
-        white_pawn_offsets = [8, 16]
-        for current_square in range(64):
-            if 7 < current_square < 16:
-                moves.append(((1 << current_square) << white_pawn_offsets[0]) + ((1 << current_square) << white_pawn_offsets[1]))
-            elif current_square < 56:
-                moves.append(((1 << current_square) << white_pawn_offsets[0]))
-            else:
-                moves.append(0)
 
-    if piece == "black_pawn":
-        black_pawn_offsets = [-8, -16]
-        for current_square in range(64):
-            if 47 < current_square < 56:
-                moves.append((1 << (current_square + black_pawn_offsets[0])) + (1 << (current_square + black_pawn_offsets[1])))
-            elif current_square > 7:
-                moves.append(1 << (current_square + black_pawn_offsets[0]))
-            else:
-                moves.append(0)
+def precompute_all_moves():
+    white_pawn_moves = []
+    white_pawn_offsets = [8, 16]
+    for current_square in range(64):
+        if 7 < current_square < 16:
+            white_pawn_moves.append(((1 << current_square) << white_pawn_offsets[0]) + ((1 << current_square) << white_pawn_offsets[1]))
+        elif current_square < 56:
+            white_pawn_moves.append(((1 << current_square) << white_pawn_offsets[0]))
+        else:
+            white_pawn_moves.append(0)
 
-    if piece == "knight":
-        knight_offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
-        for current_square in range(64):
-            current_move = 0
-            for offset in knight_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    if abs((current_square % 8) - (current_square + offset) % 8) <= 2 and abs(current_square // 8 - (current_square + offset) // 8) <= 2:
-                        current_move |= 1 << (current_square + offset)
+    black_pawn_moves = []
+    black_pawn_offsets = [-8, -16]
+    for current_square in range(64):
+        if 47 < current_square < 56:
+            black_pawn_moves.append((1 << (current_square + black_pawn_offsets[0])) + (1 << (current_square + black_pawn_offsets[1])))
+        elif current_square > 7:
+            black_pawn_moves.append(1 << (current_square + black_pawn_offsets[0]))
+        else:
+            black_pawn_moves.append(0)
 
-            moves.append(current_move)
+    knight_moves = []
+    knight_offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
+    for current_square in range(64):
+        current_move = 0
+        for offset in knight_offsets:
+            if 64 > (current_square + offset) >= 0:
+                if abs((current_square % 8) - (current_square + offset) % 8) <= 2 and abs(current_square // 8 - (current_square + offset) // 8) <= 2:
+                    current_move |= 1 << (current_square + offset)
 
-    if piece == "bishop":
-        bishop_offsets = []
-        for offset in range(1, 8):
-            bishop_offsets.append(offset * 7)
-            bishop_offsets.append(-offset * 7)
+        knight_moves.append(current_move)
 
-            bishop_offsets.append(offset * 9)
-            bishop_offsets.append(-offset * 9)
-        for current_square in range(64):
-            current_move = 0
-            for offset in bishop_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
-                    vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
-                    if horizontal_difference == vertical_difference:
-                        current_move |= 1 << (current_square + offset)
+    bishop_moves = []
+    bishop_offsets = []
+    for offset in range(1, 8):
+        bishop_offsets.append(offset * 7)
+        bishop_offsets.append(-offset * 7)
 
-            moves.append(current_move)
+        bishop_offsets.append(offset * 9)
+        bishop_offsets.append(-offset * 9)
+    for current_square in range(64):
+        current_move = 0
+        for offset in bishop_offsets:
+            if 64 > (current_square + offset) >= 0:
+                horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
+                vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
+                if horizontal_difference == vertical_difference:
+                    current_move |= 1 << (current_square + offset)
 
-    if piece == "rook":
-        rook_offsets = []
-        for offset in range(1, 8):
-            rook_offsets.append(offset * 8)
-            rook_offsets.append(-offset * 8)
+        bishop_moves.append(current_move)
 
-            rook_offsets.append(offset)
-            rook_offsets.append(-offset)
+    rook_moves = []
+    rook_offsets = []
+    for offset in range(1, 8):
+        rook_offsets.append(offset * 8)
+        rook_offsets.append(-offset * 8)
 
-        for current_square in range(64):
-            current_move = 0
-            for offset in rook_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
-                    vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
-                    if horizontal_difference == vertical_difference:
-                        current_move |= 1 << (current_square + offset)
+        rook_offsets.append(offset)
+        rook_offsets.append(-offset)
 
-            moves.append(current_move)
+    for current_square in range(64):
+        current_move = 0
+        for offset in rook_offsets:
+            if 64 > (current_square + offset) >= 0:
+                horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
+                vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
+                if (horizontal_difference == 0 and vertical_difference > 0) or (horizontal_difference > 0 and vertical_difference == 0):
+                    current_move |= 1 << (current_square + offset)
 
-    if piece == "queen":
-        queen_diagonal_offsets = []
-        queen_straight_offsets = []
-        for offset in range(1, 8):
-            queen_straight_offsets.append(offset)
-            queen_straight_offsets.append(-offset)
+        rook_moves.append(current_move)
 
-            queen_straight_offsets.append(offset * 8)
-            queen_straight_offsets.append(-offset * 8)
+    queen_moves = []
+    for current_square in range(64):
+        queen_moves.append(rook_moves[current_square] | bishop_moves[current_square])
 
-            queen_diagonal_offsets.append(offset*7)
-            queen_diagonal_offsets.append(-offset*7)
+    king_moves = []
+    king_diagonal_offsets = [-9, -7, 7, 9]
+    king_straight_offsets = [-8, -1, 1, 8]
 
-            queen_diagonal_offsets.append(offset * 9)
-            queen_diagonal_offsets.append(-offset * 9)
+    for current_square in range(64):
+        current_move = 0
 
-        for current_square in range(64):
-            current_move = 0
+        for offset in king_straight_offsets:
+            if 64 > (current_square + offset) >= 0:
+                horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
+                vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
+                if horizontal_difference == 0 or vertical_difference == 0:
+                    current_move |= 1 << (current_square + offset)
 
-            for offset in queen_straight_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
-                    vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
-                    if horizontal_difference == 0 or vertical_difference == 0:
-                        current_move |= 1 << (current_square + offset)
+        for offset in king_diagonal_offsets:
+            if 64 > (current_square + offset) >= 0:
+                horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
+                vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
+                if horizontal_difference == vertical_difference:
+                    current_move |= 1 << (current_square + offset)
 
-            for offset in queen_diagonal_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
-                    vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
-                    if horizontal_difference == vertical_difference:
-                        current_move |= 1 << (current_square + offset)
+        king_moves.append(current_move)
 
-            moves.append(current_move)
-
-    if piece == "king":
-        king_diagonal_offsets = [-9, -7, 7, 9]
-        king_straight_offsets = [-8, -1, 1, 8]
-
-        for current_square in range(64):
-            current_move = 0
-
-            for offset in king_straight_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
-                    vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
-                    if horizontal_difference == 0 or vertical_difference == 0:
-                        current_move |= 1 << (current_square + offset)
-
-            for offset in king_diagonal_offsets:
-                if 64 >= (current_square + offset) >= 0:
-                    horizontal_difference = abs((current_square % 8) - ((current_square + offset) % 8))
-                    vertical_difference = abs((current_square // 8) - ((current_square + offset) // 8))
-                    if horizontal_difference == vertical_difference:
-                        current_move |= 1 << (current_square + offset)
-
-            moves.append(current_move)
-
-    return moves
+    return white_pawn_moves, black_pawn_moves, knight_moves, bishop_moves, rook_moves, queen_moves, king_moves
 
 
 def make_move(start, end, turn):
@@ -430,12 +399,4 @@ def check_check():
             assert False, "not implemented"
 
 
-
-
-white_pawn_moves = precompute_all_moves("white_pawn")
-black_pawn_moves = precompute_all_moves("black_pawn")
-knight_moves = precompute_all_moves("knight")
-bishop_moves = precompute_all_moves("bishop")
-rook_moves = precompute_all_moves("rook")
-queen_moves = precompute_all_moves("queen")
-king_moves = precompute_all_moves("king")
+white_pawn_moves, black_pawn_moves, knight_moves, bishop_moves, rook_moves, queen_moves, king_moves = precompute_all_moves()
