@@ -1,4 +1,4 @@
 # Gymnasiearbete
 
 ### Länkar
-- Planering: https://github.com/Huggepugge1/Gymnasiearbete/blob/master/README.md
+- Planering: https://docs.google.com/spreadsheets/d/1UBFEmnRsDVnLKVBkw1Soi2YmajGyDDtaX-7JdHeRJ30/edit#gid=0
