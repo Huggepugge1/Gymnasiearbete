@@ -17,48 +17,96 @@ pub struct Piece {
     pub piece_type: i8
 }
 
+pub struct Distance {
+    pub files: i64,
+    pub ranks: i64
+}
+
 pub fn gen_sliding_moves(board: [i8; 64], pos: i64) -> i64 {
     let piece = board::find_piece(board[pos as usize]);
     let diagonal_offsets: [i64; 4] = [-9, -7, -7, 9];
     let straight_offsets: [i64; 4] = [-8, -1, 1, 8];
     let mut moves: i64 = 0;
-    if piece.piece_type == BISHOP {
+
+    if piece.piece_type == BISHOP || piece.piece_type == QUEEN {
         for offset in diagonal_offsets {
             let mut steps: i64 = 1;
-            while ((pos as i64 % 8) - ((pos as i64 + offset*steps) % 8)).abs() == ((pos as i64 / 8) - ((pos as i64 + offset*steps) / 8)).abs() {
+            while true {
+                let distance = check_distance(pos, pos + offset*steps);
+                if !(distance.files == distance.ranks) {
+                    break;
+                }
+
                 if 0 > (pos + offset*steps) || (pos + offset*steps) > 63 {
                     break;
                 }
+
                 if board[(pos + offset*steps) as usize] != 0 {
                     if board::find_piece(board[(pos + offset*steps) as usize]).color != piece.color {
-                        moves |= 1 << (pos as i64 + (offset*steps));
+                        moves |= 1 << (pos + (offset*steps));
                     }
                     break;
                 }
-                println!("{}", pos as i64 + (offset*steps));
-                moves |= 1 << (pos as i64 + (offset*steps));
+
+                moves |= 1 << (pos + (offset*steps));
                 steps += 1;
             }
         }
     }
-    else if piece.piece_type == ROOK {
+    
+    if piece.piece_type == ROOK || piece.piece_type == QUEEN {
         for offset in straight_offsets {
             let mut steps: i64 = 1;
-            while ((pos as i64 % 8) - ((pos as i64 + offset*steps) % 8)).abs() == 0 || ((pos as i64 / 8) - ((pos as i64 + offset*steps) / 8)).abs() == 0 {
+
+            while true {
+                let distance = check_distance(pos, pos + offset*steps);
+                if !(distance.files == 0 || distance.ranks == 0) {
+                    break;
+                }
+
                 if 0 > (pos + offset*steps) && (pos + offset*steps) > 63 {
                     break;
                 }
+
                 if board[(pos + offset*steps) as usize] != 0 {
                     if board::find_piece(board[(pos + offset*steps) as usize]).color != piece.color {
-                        moves |= 1 << (pos as i64 + (offset*steps));
+                        moves |= 1 << (pos + (offset*steps));
                     }
                     break;
                 }
-                println!("{}", pos as i64 + (offset*steps));
-                moves |= 1 << (pos as i64 + (offset*steps));
+
+                println!("{}", pos + (offset*steps));
+                moves |= 1 << (pos + (offset*steps));
                 steps += 1;
             }
         }
     }
-    return moves
+
+    moves
+}
+
+pub fn gen_knight_moves(board: [i8; 64], pos: i64) -> i64 {
+    let piece = board::find_piece(board[pos as usize]);
+    let offsets: [i64; 8] = [-17, -15, -10, -6, 6, 10, 15, 17];
+    let mut moves = 0;
+
+    if piece.piece_type == KNIGHT {
+        for offset in offsets {
+            if pos + offset < 64 && 0 <= pos + offset {
+                let distance = check_distance(pos, pos + offset);
+                if (distance.files == 2 && distance.ranks == 1) || (distance.files == 1 && distance.ranks == 2) {
+                    if board::find_piece(board[(pos + offset) as usize]).color != piece.color {
+                        moves |= 1 << (pos + offset);
+                    }
+                }
+            }
+        }
+    }
+    moves
+}
+
+pub fn check_distance(start: i64, end: i64) -> Distance {
+    let files = ((start % 8) - (end % 8)).abs();
+    let ranks = ((start / 8) - (end / 8)).abs();
+    Distance{ files, ranks }
 }
