@@ -1,14 +1,13 @@
-const EMPTY: i8 = 0;
-const PAWN: i8 = 1;
-const ROOK: i8 = 2;
-const KNIGHT: i8 = 3;
-const BISHOP: i8 = 4;
-const QUEEN: i8 = 5;
-const KING: i8 = 6;
-const PIECE: i8 = 7;
+const EMPTY: u8 = 0;
+const PAWN: u8 = 1;
+const ROOK: u8 = 2;
+const KNIGHT: u8 = 3;
+const BISHOP: u8 = 4;
+const QUEEN: u8 = 5;
+const KING: u8 = 6;
 
-const WHITE: i8 = 8;
-const BLACK: i8 = 16;
+const WHITE: u8 = 8;
+const BLACK: u8 = 16;
 
 pub struct Board {
     pub pawns: u64,
@@ -19,17 +18,20 @@ pub struct Board {
     pub kings: u64,
 
     pub white_pieces: u64,
-    pub black_pieces: u64
+    pub black_pieces: u64,
+
+    pub en_passant: i8,
+    pub turn: u8
 }
 
 pub struct Piece {
-    pub color: i8,
-    pub piece_type: i8
+    pub color: u8,
+    pub piece_type: u8
 }
 
-pub fn get_piece(board: &Board, pos: i64) -> Piece {
+pub fn get_piece(board: &Board, pos: i8) -> Piece {
     let color = if board.white_pieces & (1 << pos) > 0 { WHITE } else if board.black_pieces & (1 << pos) > 0 { BLACK } else { EMPTY };
-    let mut piece_type: i8 = 0;
+    let mut piece_type: u8 = 0;
     if color == EMPTY {
         piece_type = EMPTY;
     } else if (1 << pos) & board.pawns > 0 {
@@ -59,7 +61,7 @@ pub fn print_board(board: &Board) {
         println!(" --- --- --- --- --- --- --- ---");
     }
 }
-// Converts i8 to understandable text
+// Converts u8 to understandable text
 pub fn converter(piece: &Piece) -> char {
     let c;
     if piece.piece_type == PAWN {
@@ -94,6 +96,8 @@ pub fn create_board() -> Board {
 
     let white_pieces: u64 = (1 << 16) - 1;
     let black_pieces: u64 = (((1 << 16) - 1) << 48) + (1 << 3);
+    let en_passant: i8 = 0;
+    let turn: u8 = 8;
 
     Board{
         pawns,
@@ -104,6 +108,9 @@ pub fn create_board() -> Board {
         kings,
 
         white_pieces,
-        black_pieces
+        black_pieces,
+
+        en_passant,
+        turn
     }
 }

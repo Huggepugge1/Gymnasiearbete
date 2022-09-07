@@ -1,32 +1,37 @@
 use crate::board;
 
-const EMPTY: i8 = 0;
-const PAWN: i8 = 1;
-const ROOK: i8 = 2;
-const KNIGHT: i8 = 3;
-const BISHOP: i8 = 4;
-const QUEEN: i8 = 5;
-const KING: i8 = 6;
-const PIECE: i8 = 7;
+const EMPTY: u8 = 0;
+const PAWN: u8 = 1;
+const ROOK: u8 = 2;
+const KNIGHT: u8 = 3;
+const BISHOP: u8 = 4;
+const QUEEN: u8 = 5;
+const KING: u8 = 6;
 
-const WHITE: i8 = 8;
-const BLACK: i8 = 16;
+const WHITE: u8 = 8;
+const BLACK: u8 = 16;
 
 pub struct Distance {
-    pub files: i64,
-    pub ranks: i64
+pub files: i8,
+pub ranks: i8
 }
 
-pub fn check(board: &board::Board, en_passant: i64, turn: i8) -> bool {
-    let mut attacks = 0;
+pub fn check_distance(start: i8, end: i8) -> Distance {
+    let files: i8 = ((start % 8) - (end % 8)).abs();
+    let ranks: i8 = ((start / 8) - (end / 8)).abs();
+    Distance{ files, ranks }
+}
+
+pub fn check(board: &board::Board) -> bool {
+    let mut attacks: u64 = 0;
     for square in 0..64 {
         let piece = board::get_piece(&board, square);
 
         if piece.piece_type == EMPTY { continue; };
-        if piece.color == turn { continue; }
+        if piece.color == board.turn { continue; }
 
         attacks |= if piece.piece_type == PAWN {
-            gen_pawn_moves(board, square, en_passant)
+            gen_pawn_moves(board, square)
         } else if piece.piece_type == KNIGHT {
             gen_knight_moves(board, square)
         } else if piece.piece_type == KING {
@@ -35,14 +40,14 @@ pub fn check(board: &board::Board, en_passant: i64, turn: i8) -> bool {
             gen_sliding_moves(board, square)
         };
     }
-    if turn == WHITE {
+    if board.turn == WHITE {
         attacks & board.white_pieces & board.kings > 0
     } else {
         attacks & board.black_pieces & board.kings > 0
     }
 }
 
-pub fn gen_pawn_moves(board: &board::Board, pos: i64, en_passant: i64) -> u64 {
+pub fn gen_pawn_moves(board: &board::Board, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(&board, pos);
     let mut moves: u64 = 0;
 
@@ -51,7 +56,7 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i64, en_passant: i64) -> u64 {
             if board::get_piece(&board, pos + 8).piece_type == EMPTY {
                 moves |= 1 << (pos + 8);
             }
-            
+
             if board::get_piece(&board, pos + 8).piece_type == EMPTY && board::get_piece(&board, pos + 16).piece_type == EMPTY && pos / 8 == 1 {
                 moves |= 1 << (pos + 16);
             }
@@ -64,11 +69,11 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i64, en_passant: i64) -> u64 {
                 moves |= 1 << (pos + 9);
             }
 
-            if pos - en_passant == 1 {
+            if pos - board.en_passant == 1 {
                 moves |= 1 << (pos + 7);
             }
 
-            if pos - en_passant == -1 {
+            if pos - board.en_passant == -1 {
                 moves |= 1 << (pos + 9);
             }
 
@@ -76,8 +81,8 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i64, en_passant: i64) -> u64 {
             if board::get_piece(&board, pos - 8).piece_type == EMPTY {
                 moves |= 1 << (pos - 8);
             }
-            
-            if board::get_piece(&board, pos - 8).piece_type == EMPTY && board::get_piece(&board, pos - 16).piece_type == EMPTY && pos / 8 == 7 {
+
+            if board::get_piece(&board, pos - 8).piece_type == EMPTY && board::get_piece(&board, pos - 16).piece_type == EMPTY && pos / 8 == 6 {
                 moves |= 1 << (pos + -16);
             }
 
@@ -88,12 +93,12 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i64, en_passant: i64) -> u64 {
             if board::get_piece(&board, pos - 9).color != piece.color && board::get_piece(&board, pos - 9).color != EMPTY && (pos % 8) - ((pos - 9) % 8) == -1 {
                 moves |= 1 << (pos - 9);
             }
-            
-            if pos - en_passant == 1 {
+
+            if pos - board.en_passant == 1 {
                 moves |= 1 << (pos - 9);
             }
 
-            if pos - en_passant == -1 {
+            if pos - board.en_passant == -1 {
                 moves |= 1 << (pos - 7);
             }
         }
@@ -102,9 +107,9 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i64, en_passant: i64) -> u64 {
     moves
 }
 
-pub fn gen_knight_moves(board: &board::Board, pos: i64) -> u64 {
+pub fn gen_knight_moves(board: &board::Board, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(board, pos);
-    let offsets: [i64; 8] = [-17, -15, -10, -6, 6, 10, 15, 17];
+    let offsets: [i8; 8] = [-17, -15, -10, -6, 6, 10, 15, 17];
     let mut moves: u64 = 0;
 
     if piece.piece_type == KNIGHT {
@@ -127,15 +132,15 @@ pub fn gen_knight_moves(board: &board::Board, pos: i64) -> u64 {
     moves
 }
 
-pub fn gen_sliding_moves(board: &board::Board, pos: i64) -> u64 {
+pub fn gen_sliding_moves(board: &board::Board, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(board, pos);
-    let diagonal_offsets: [i64; 4] = [-9, -7, 7, 9];
-    let straight_offsets: [i64; 4] = [-8, -1, 1, 8];
+    let diagonal_offsets: [i8; 4] = [-9, -7, 7, 9];
+    let straight_offsets: [i8; 4] = [-8, -1, 1, 8];
     let mut moves: u64 = 0;
 
     if piece.piece_type == BISHOP || piece.piece_type == QUEEN {
         for offset in diagonal_offsets {
-            let mut steps: i64 = 1;
+            let mut steps: i8 = 1;
             loop {
                 let distance: Distance = check_distance(pos, pos + offset*steps);
                 if !(distance.files == distance.ranks) {
@@ -158,10 +163,10 @@ pub fn gen_sliding_moves(board: &board::Board, pos: i64) -> u64 {
             }
         }
     }
-    
+
     if piece.piece_type == ROOK || piece.piece_type == QUEEN {
         for offset in straight_offsets {
-            let mut steps: i64 = 1;
+            let mut steps: i8 = 1;
 
             loop {
                 let distance: Distance = check_distance(pos, pos + offset*steps);
@@ -190,9 +195,9 @@ pub fn gen_sliding_moves(board: &board::Board, pos: i64) -> u64 {
 }
 
 
-pub fn gen_king_moves(board: &board::Board, pos: i64) -> u64 {
+pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(board, pos);
-    let offsets: [i64; 8] = [-9, -8, -7, -1, 1, 7, 8, 9];
+    let offsets: [i8; 8] = [-9, -8, -7, -1, 1, 7, 8, 9];
     let mut moves: u64 = 0;
 
     if piece.piece_type == KING {
@@ -217,8 +222,87 @@ pub fn gen_king_moves(board: &board::Board, pos: i64) -> u64 {
     moves
 }
 
-pub fn check_distance(start: i64, end: i64) -> Distance {
-    let files: i64 = ((start % 8) - (end % 8)).abs();
-    let ranks: i64 = ((start / 8) - (end / 8)).abs();
-    Distance{ files, ranks }
+
+pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
+    let piece = board::get_piece(&board, start);
+    if piece.color != board.turn {
+        return board;
+    }
+    if piece.piece_type == EMPTY {
+        return board;
+    } else if piece.piece_type == PAWN {
+        let moves: u64 = gen_pawn_moves(&board, start);
+
+        if moves & (1 << end) == 0 || check(&board) {
+            return board;
+        }
+
+        if (piece.color == WHITE && end == board.en_passant + 8) || (piece.color == BLACK && end == board.en_passant - 8) {
+            if piece.color == WHITE {
+                board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.en_passant);
+            } else {
+                board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.en_passant);
+            }
+        }
+
+        if (start - end).abs() == 16 {
+            board.en_passant = end;
+        } else {
+            board.en_passant = 0;
+        }
+
+        board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+        board.pawns |= 1 << end;
+
+    } else if piece.piece_type == KNIGHT {
+        let moves: u64 = gen_knight_moves(&board, start);
+
+        if moves & (1 << end) == 0 || check(&board) {
+            return board;
+        }
+
+        board.knights &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+        board.knights |= 1 << end;
+
+    } else if piece.piece_type == KING {
+        let moves: u64 = gen_king_moves(&board, start);
+
+        if moves & (1 << end) == 0 || check(&board) {
+            return board;
+        }
+
+        board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+        board.kings |= 1 << end;
+
+    } else {
+        let moves: u64 = gen_sliding_moves(&board, start);
+
+        if moves & (1 << end) == 0 || check(&board) {
+            return board;
+        }
+
+        if piece.piece_type == ROOK {
+            board.rooks &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+            board.rooks |= 1 << end;
+        } else if piece.piece_type == BISHOP {
+            board.bishops &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+            board.bishops |= 1 << end;
+        } else {
+            board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+            board.queens |= 1 << end;
+        }
+
+    }
+    if piece.color == WHITE {
+        board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+        board.white_pieces |= 1 << end;
+    } else {
+        board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+        board.black_pieces |= 1 << end;
+    }
+
+    if piece.piece_type != PAWN {
+        board.en_passant = 0;
+    }
+    return board
 }
