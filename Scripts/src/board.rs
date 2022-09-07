@@ -92,7 +92,7 @@ pub fn create_board() -> Board {
     let queens: u64 = (1 << 3) + (1 << 59);
     let kings: u64 = (1 << 4) + (1 << 60);
 
-    let white_pieces: u64 = (1 << 16) - 1 - (1 << 3);
+    let white_pieces: u64 = (1 << 16) - 1;
     let black_pieces: u64 = (((1 << 16) - 1) << 48) + (1 << 3);
 
     Board{
