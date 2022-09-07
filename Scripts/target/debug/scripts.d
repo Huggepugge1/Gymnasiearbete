@@ -1,1 +1,1 @@
-/mnt/c/Gymnasiearbete/scripts/target/debug/scripts: /mnt/c/Gymnasiearbete/scripts/src/board.rs /mnt/c/Gymnasiearbete/scripts/src/main.rs /mnt/c/Gymnasiearbete/scripts/src/moves.rs
+/mnt/d/projekt/Gymnasiearbete/scripts/target/debug/scripts: /mnt/d/projekt/Gymnasiearbete/scripts/src/board.rs /mnt/d/projekt/Gymnasiearbete/scripts/src/main.rs /mnt/d/projekt/Gymnasiearbete/scripts/src/moves.rs

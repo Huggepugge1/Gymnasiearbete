@@ -169,7 +169,7 @@ pub fn gen_sliding_moves(board: &board::Board, pos: i64) -> u64 {
                     break;
                 }
 
-                if 0 > (pos + offset*steps) && (pos + offset*steps) > 63 {
+                if 0 > (pos + offset*steps) || (pos + offset*steps) > 63 {
                     break;
                 }
 
