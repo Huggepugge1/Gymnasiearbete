@@ -291,8 +291,14 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
             board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.queens |= 1 << end;
         }
+    }
+
+    let enemy_piece = board::get_piece(&board, end);
+
+    if enemy_piece.piece_type == PAWN {
 
     }
+
     if piece.color == WHITE {
         board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
         board.white_pieces |= 1 << end;
