@@ -298,6 +298,7 @@ pub fn check_castling(board: &board::Board, pos: i8, offset: i8) -> bool {
 }
 
 pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
+    let board_copy: board::Board = board::copy_board(&board);
     let piece = board::get_piece(&board, start);
     // Makes sure the piece you are trying to move is of your color
     if piece.color != board.turn {
@@ -310,7 +311,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     } else if piece.piece_type == PAWN {
         let moves: u64 = gen_pawn_moves(&board, start);
 
-        if moves & (1 << end) == 0 || check(&board) {
+        if moves & (1 << end) == 0 {
             return board;
         }
         // Executes en passant
@@ -335,7 +336,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     } else if piece.piece_type == KNIGHT {
         let moves: u64 = gen_knight_moves(&board, start);
 
-        if moves & (1 << end) == 0 || check(&board) {
+        if moves & (1 << end) == 0 {
             return board;
         }
 
@@ -345,7 +346,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     } else if piece.piece_type == KING {
         let moves: u64 = gen_king_moves(&board, start);
 
-        if moves & (1 << end) == 0 || check(&board) {
+        if moves & (1 << end) == 0 {
             return board;
         }
         // Castling
@@ -391,7 +392,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     } else {
         let moves: u64 = gen_sliding_moves(&board, start);
 
-        if moves & (1 << end) == 0 || check(&board) {
+        if moves & (1 << end) == 0 {
             return board;
         }
 
@@ -440,10 +441,19 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
             board.knights &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         } else if enemy_piece.piece_type == BISHOP {
             board.bishops &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            println!("{}", board.bishops);
         } else if enemy_piece.piece_type == QUEEN {
             board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         } else {
             board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+        }
+    }
+
+    if enemy_piece.color != EMPTY && enemy_piece.color != piece.color {
+        if piece.color == WHITE {
+            board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+        } else if piece.color == BLACK {
+            board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         }
     }
 
@@ -460,5 +470,15 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     if piece.piece_type != PAWN {
         board.en_passant = 0;
     }
-    return board
+
+    if check(&board) {
+        board_copy
+    } else {
+        if piece.color == WHITE {
+            board.turn = BLACK;
+        } else {
+            board.turn = WHITE;
+        }
+        board
+    }
 }

@@ -1,3 +1,5 @@
+use std::thread;
+
 use ggez;
 use ggez::{Context, GameResult};
 use ggez::graphics;
@@ -15,7 +17,10 @@ pub struct MainState {
     pub number_of_selected_squares: u8,
     pub start_square: i8,
     pub end_square: i8,
-    pub needs_refresh: bool
+    pub needs_refresh: bool,
+    pub frame: u64,
+
+    pub board: board::Board
 }
 
 impl MainState {
@@ -25,7 +30,9 @@ impl MainState {
             number_of_selected_squares: 0,
             start_square: -1,
             end_square: -1,
-            needs_refresh: true
+            needs_refresh: true,
+            board: board::create_board(),
+            frame: 0
         }
     }
 }
@@ -37,7 +44,12 @@ fn main() -> GameResult {
     graphics::set_window_title(&ctx, "hello");
     graphics::set_drawable_size(&mut ctx, 800.0, 800.0)?;
 
-    let mut state = MainState::new();
+    let mut state: MainState = MainState::new();
+    thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+        }
+    });
     event::run(ctx, event_loop, state);
     Ok(())
 }

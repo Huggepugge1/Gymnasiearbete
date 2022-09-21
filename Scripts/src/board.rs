@@ -1,14 +1,14 @@
 // A number representation of all pieces and colors
-const EMPTY: u8 = 0;
-const PAWN: u8 = 1;
-const ROOK: u8 = 2;
-const KNIGHT: u8 = 3;
-const BISHOP: u8 = 4;
-const QUEEN: u8 = 5;
-const KING: u8 = 6;
+pub const EMPTY: u8 = 0;
+pub const PAWN: u8 = 1;
+pub const ROOK: u8 = 2;
+pub const KNIGHT: u8 = 3;
+pub const BISHOP: u8 = 4;
+pub const QUEEN: u8 = 5;
+pub const KING: u8 = 6;
 
-const WHITE: u8 = 8;
-const BLACK: u8 = 16;
+pub const WHITE: u8 = 8;
+pub const BLACK: u8 = 16;
 // A collection of bitmaps to represent the board in a simple and efficient manner
 pub struct Board {
     pub pawns: u64,
@@ -35,7 +35,7 @@ pub struct Board {
 // A way of representing a piece
 pub struct Piece {
     pub color: u8,
-    pub piece_type: u8
+    pub piece_type: u8,
 }
 // Represents a square as two numbers, the color and piece on it
 // If no piece is present piece_type and color will be EMPTY which is equal to 0
