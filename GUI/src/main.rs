@@ -10,14 +10,18 @@ const square_y: f32 = 0.75 * square_size;
 
 struct MainState {
     pub selected_squares: [bool; 64],
-    pub number_of_selected_squares: u8
+    pub number_of_selected_squares: u8,
+    pub start_square: i8,
+    pub end_square: i8
 }
 
 impl MainState {
     pub fn new() -> Self {
         MainState {
             selected_squares: [false; 64],
-            number_of_selected_squares: 0
+            number_of_selected_squares: 0,
+            start_square: -1,
+            end_square: -1
         }
     }
 }
@@ -33,15 +37,27 @@ impl event::EventHandler for MainState {
         _button: MouseButton,
         _x: f32,
         _y: f32) {
-        println!("{}", (_y));
-        let square: usize = (((_x / square_size) as u32 % 8) + (((_y / square_size) as u32 % 8) * 8)) as usize;
-        if self.selected_squares[square] == false && self.number_of_selected_squares < 2 {
-            self.selected_squares[square] = true;
-            self.number_of_selected_squares += 1;
-        } else if self.selected_squares[square] == true {
-            self.selected_squares[square] = false;
-            self.number_of_selected_squares -= 1;
-        }
+            let square: i8 = (((_x / square_size) as u32 % 8) + ((((800.0 - _y) / square_size) as u32 % 8) * 8)) as i8;
+            if self.selected_squares[square as usize] == false && self.number_of_selected_squares < 2 {
+                if self.number_of_selected_squares == 0 {
+                    self.start_square = square;
+                } else {
+                    self.end_square = square;
+                }
+                
+                self.selected_squares[square as usize] = true;
+                self.number_of_selected_squares += 1;
+            } else if self.selected_squares[square as usize] == true {
+                self.selected_squares[square as usize] = false;
+                self.number_of_selected_squares -= 1;
+
+                if self.number_of_selected_squares == 0 {
+                    self.start_square = -1;
+                } else {
+                    self.end_square = -1;
+                }
+            }
+            println!("{:?}", ([self.start_square, self.end_square]));
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -67,7 +83,7 @@ impl event::EventHandler for MainState {
 
         for square in 0..64 {
             let color: usize = if (((square % 8) % 2) + (square / 8)) % 2 == 0 { 0 } else { 1 };
-            let curr_square = graphics::Rect::new(((square % 8 * square_size as u32)) as f32, ((square / 8 * square_y as u32)) as f32, square_size, square_y);
+            let curr_square = graphics::Rect::new((square % 8 * square_size as u32) as f32, (525 - (square / 8 * square_y as u32)) as f32, square_size, square_y);
 
             if !self.selected_squares[square as usize] {
                 let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, colors[color])?;
