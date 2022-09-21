@@ -1,1 +1,8 @@
-target
+.fingerprint
+build
+deps
+examples
+incremental
+.cargo-lock
+.rustc_info.json
+CACHEDIR.TAG
