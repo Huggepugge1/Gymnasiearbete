@@ -1,1 +1,1 @@
-D:\projekt\Gymnasiearbete\scripts\target\debug\scripts.exe: D:\projekt\Gymnasiearbete\scripts\src\board.rs D:\projekt\Gymnasiearbete\scripts\src\gui.rs D:\projekt\Gymnasiearbete\scripts\src\main.rs D:\projekt\Gymnasiearbete\scripts\src\moves.rs
+C:\Gymnasiearbete\scripts\target\debug\scripts.exe: C:\Gymnasiearbete\scripts\src\board.rs C:\Gymnasiearbete\scripts\src\gui.rs C:\Gymnasiearbete\scripts\src\main.rs C:\Gymnasiearbete\scripts\src\moves.rs

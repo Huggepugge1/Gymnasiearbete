@@ -22,35 +22,131 @@ pub fn calculate_distance(start: i8, end: i8) -> Distance {
     Distance{ files, ranks }
 }
 // Checks for check, true means check is present
-pub fn check(board: &board::Board) -> bool {
-    let mut attacks: u64 = 0;
-    // Loops thru all squares and calculates what squares all pieces of the opposite color controls
-    for square in 0..64 {
-        let piece = board::get_piece(&board, square);
+pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
+    let white_pawn_offsets: [i8; 2] = [-9, -7];
+    let black_pawn_offsets: [i8; 2] = [7, 9];
+    let knight_offsets: [i8; 8] = [-17, -15, -10, -6, 6, 10, 15, 17];
+    let diagonal_offsets: [i8; 4] = [-9, -7, 7, 9];
+    let straight_offsets: [i8; 4] = [-8, -1, 1, 8];
+    let king_offsets: [i8; 8] = [-9, -8, -7, -1, 1, 7, 8, 9];
 
-        if piece.piece_type == EMPTY { continue; };
-        if piece.color == board.turn { continue; }
-
-        // Adds all possible moves to attacks
-        attacks |= if piece.piece_type == PAWN {
-            gen_pawn_moves(board, square)
-        } else if piece.piece_type == KNIGHT {
-            gen_knight_moves(board, square)
-        } else if piece.piece_type == KING {
-            gen_king_moves(board, square)
-        } else {
-            gen_sliding_moves(board, square)
-        };
-    }
-    // Returns true if the corresponding colors king is being attacked
     if board.turn == WHITE {
-        attacks & board.white_pieces & board.kings > 0
+        for offset in black_pawn_offsets {
+            let piece = board::get_piece(board, pos + offset);
+
+            if piece.piece_type == PAWN && piece.color != board.turn {
+                return true;
+            }
+            if piece.piece_type != EMPTY {
+                break;
+            }
+        }
     } else {
-        attacks & board.black_pieces & board.kings > 0
+        for offset in white_pawn_offsets {
+            let piece = board::get_piece(board, pos + offset);
+
+            if piece.piece_type == PAWN && piece.color != board.turn {
+                return true;
+            }
+            if piece.piece_type != EMPTY {
+                break;
+            }
+        }
     }
+
+    for offset in knight_offsets {
+        if pos + offset < 64 && 0 <= pos + offset {
+            let distance: Distance = calculate_distance(pos, pos + offset);
+            if !((distance.files == 1 && distance.ranks == 2) || (distance.files == 2 && distance.ranks == 1)) {
+                continue;
+            }
+
+            let piece = board::get_piece(board, pos + offset);
+
+            if piece.piece_type == KNIGHT && piece.color != board.turn {
+                return true
+            }
+            if piece.piece_type != EMPTY {
+                break;
+            }
+        }
+    }
+
+    for offset in diagonal_offsets {
+        let mut steps: i8 = 1;
+        loop {
+            let distance: Distance = calculate_distance(pos, pos + offset*steps);
+            if !(distance.files == distance.ranks) {
+                break;
+            }
+
+            if 0 > (pos + offset*steps) || (pos + offset*steps) > 63 {
+                break;
+            }
+
+            let piece = board::get_piece(board, pos + (offset * steps));
+
+            if (piece.piece_type == BISHOP || piece.piece_type == QUEEN) && piece.color != board.turn {
+                return true;
+            }
+            if piece.piece_type != EMPTY {
+                break;
+            }
+            steps += 1;
+        }
+    }
+
+    for offset in straight_offsets {
+        let mut steps: i8 = 1;
+
+        loop {
+            let distance: Distance = calculate_distance(pos, pos + offset*steps);
+            if !(distance.files == 0 || distance.ranks == 0) {
+                break;
+            }
+
+            if 0 > (pos + offset*steps) || (pos + offset*steps) > 63 {
+                break;
+            }
+
+            let piece = board::get_piece(board, pos + (offset * steps));
+
+            if (piece.piece_type == ROOK || piece.piece_type == QUEEN) && piece.color != board.turn {
+                return true;
+            }
+            if piece.piece_type != EMPTY {
+                break;
+            }
+
+            steps += 1;
+        }
+    }
+    for offset in king_offsets {
+        // Makes sure move is inside the board
+        if pos + offset < 64 && 0 <= pos + offset {
+            // Makes sure king does not move to far
+            // For example, if king is on a8 and offset is -1, the king will move to h7 which is not a legal move
+            let distance: Distance = calculate_distance(pos, pos + offset);
+            if distance.files > 1 || distance.ranks > 1 {
+                continue;
+            }
+            // Checks if possible piece is on square and makes sure it is not your own
+            let enemy_piece: board::Piece = board::get_piece(board, pos+offset);
+            
+            let piece = board::get_piece(board, pos + offset);
+
+            if piece.piece_type == KING && piece.color != board.turn {
+                return true;
+            }
+            if piece.piece_type != EMPTY {
+                break;
+            }
+        }
+    }
+    false
 }
 
-pub fn gen_pawn_moves(board: &board::Board, pos: i8) -> u64 {
+pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(&board, pos);
     let mut moves: u64 = 0;
 
@@ -65,11 +161,11 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i8) -> u64 {
                 moves |= 1 << (pos + 16);
             }
 
-            if board::get_piece(&board, pos + 7).color != piece.color && board::get_piece(&board, pos + 7).color != EMPTY && (pos % 8) - ((pos + 7) % 8) == -1 {
+            if board::get_piece(&board, pos + 7).color != piece.color && board::get_piece(&board, pos + 7).color != EMPTY && (pos % 8) - ((pos + 7) % 8) == 1 {
                 moves |= 1 << (pos + 7);
             }
 
-            if board::get_piece(&board, pos + 9).color != piece.color && board::get_piece(&board, pos + 9).color != EMPTY && (pos % 8) - ((pos + 9) % 8) == 1 {
+            if board::get_piece(&board, pos + 9).color != piece.color && board::get_piece(&board, pos + 9).color != EMPTY && (pos % 8) - ((pos + 9) % 8) == -1 {
                 moves |= 1 << (pos + 9);
             }
 
@@ -90,11 +186,11 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i8) -> u64 {
                 moves |= 1 << (pos + -16);
             }
 
-            if board::get_piece(&board, pos - 7).color != piece.color && board::get_piece(&board, pos - 7).color != EMPTY && (pos % 8) - ((pos - 7) % 8) == 1 {
+            if board::get_piece(&board, pos - 7).color != piece.color && board::get_piece(&board, pos - 7).color != EMPTY && (pos % 8) - ((pos - 7) % 8) == -1 {
                 moves |= 1 << (pos + -7);
             }
 
-            if board::get_piece(&board, pos - 9).color != piece.color && board::get_piece(&board, pos - 9).color != EMPTY && (pos % 8) - ((pos - 9) % 8) == -1 {
+            if board::get_piece(&board, pos - 9).color != piece.color && board::get_piece(&board, pos - 9).color != EMPTY && (pos % 8) - ((pos - 9) % 8) == 1 {
                 moves |= 1 << (pos - 9);
             }
 
@@ -111,7 +207,7 @@ pub fn gen_pawn_moves(board: &board::Board, pos: i8) -> u64 {
     moves
 }
 // Check gen_king_moves for explanations of many pieces of code
-pub fn gen_knight_moves(board: &board::Board, pos: i8) -> u64 {
+pub fn gen_knight_moves(board: &Box<board::Board>, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(board, pos);
     let offsets: [i8; 8] = [-17, -15, -10, -6, 6, 10, 15, 17];
     let mut moves: u64 = 0;
@@ -136,7 +232,7 @@ pub fn gen_knight_moves(board: &board::Board, pos: i8) -> u64 {
     moves
 }
 // Check gen_king_moves for explanations of many pieces of code
-pub fn gen_sliding_moves(board: &board::Board, pos: i8) -> u64 {
+pub fn gen_sliding_moves(board: &Box<board::Board>, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(board, pos);
     let diagonal_offsets: [i8; 4] = [-9, -7, 7, 9];
     let straight_offsets: [i8; 4] = [-8, -1, 1, 8];
@@ -198,7 +294,7 @@ pub fn gen_sliding_moves(board: &board::Board, pos: i8) -> u64 {
     moves
 }
 
-pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
+pub fn gen_king_moves(board: &Box<board::Board>, pos: i8) -> u64 {
     let piece: board::Piece = board::get_piece(board, pos);
     let offsets: [i8; 8] = [-9, -8, -7, -1, 1, 7, 8, 9];
     let mut moves: u64 = 0;
@@ -238,7 +334,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
             }
             if board.castling & 2 == 2 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 2) - 1) << 2 == 0 && board.black_pieces & ((1 << 2) - 1) << 2 == 0 {
+                if board.white_pieces & ((1 << 3) - 1) << 1 == 0 && board.black_pieces & ((1 << 3) - 1) << 1 == 0 {
                     // Can't castle if check is anywhere from starting square to end square
                     if check_castling(board, pos, -1) {
                         moves |= 1 << (pos - 2);
@@ -248,7 +344,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
         } else {
             if board.castling & 4 == 4 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 2) - 1) << 58 == 0 && board.black_pieces & ((1 << 2) - 1) << 58 == 0 {
+                if board.white_pieces & ((1 << 2) - 1) << 61 == 0 && board.black_pieces & ((1 << 2) - 1) << 61 == 0 {
                     // Can't castle if check is anywhere from starting square to end square
                     if check_castling(board, pos, 1) {
                         moves |= 1 << (pos + 2);
@@ -257,7 +353,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
             }
             if board.castling & 8 == 8 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 2) - 1) << 61 == 0 && board.black_pieces & ((1 << 2) - 1) << 61 == 0 {
+                if board.white_pieces & ((1 << 3) - 1) << 57 == 0 && board.black_pieces & ((1 << 3) - 1) << 57 == 0 {
                     // Can't castle if check is anywhere from starting square to end square
                     if check_castling(board, pos, -1) {
                         moves |= 1 << (pos - 2);
@@ -266,39 +362,59 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
             }
         }
     }
-
+    
     moves
 }
 
-pub fn check_castling(board: &board::Board, pos: i8, offset: i8) -> bool {
-    let mut board: board::Board = board::copy_board(board);
-    // Checks if check is present from first position
-    if !check(&board) {
-        // Moves king one position to right or left
-        board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos);
-        board.kings |= 1 << (pos + offset);
-        board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos);
-        board.white_pieces |= 1 << (pos + offset);
-        // Checks if check is present from second position
-        if !check(&board) {
-            // Moves king one position to right or left again
-            board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos + offset);
-            board.kings |= 1 << (pos + (offset * 2));
-            board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos + offset);
-            board.white_pieces |= 1 << (pos + offset * 2);
-            // Checks if check is present from end position
-            return if !check(&board) {
-                true
-            } else {
-                false
+pub fn check_castling(board: &Box<board::Board>, pos: i8, offset: i8) -> bool {
+    let mut board: Box<board::Board> = board::copy_board(board);
+    if board.turn == WHITE {
+        // Checks if check is present from first position
+        if !check(&board, pos) {
+            // Moves king one position to right or left
+            board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos);
+            board.kings |= 1 << (pos + offset);
+            board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos);
+            board.white_pieces |= 1 << (pos + offset);
+            // Checks if check is present from second position
+            if !check(&board, pos + offset) {
+                // Moves king one position to right or left again
+                board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos + offset);
+                board.kings |= 1 << (pos + offset * 2);
+                board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos + offset);
+                board.white_pieces |= 1 << (pos + offset * 2);
+                // Checks if check is present from end position
+                if !check(&board, pos + offset * 2) {
+                    return true;
+                }
+            }
+        }
+    } else {
+        if !check(&board, pos) {
+            // Moves king one position to right or left
+            board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos);
+            board.kings |= 1 << (pos + offset);
+            board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos);
+            board.black_pieces |= 1 << (pos + offset);
+            // Checks if check is present from second position
+            if !check(&board, pos + offset) {
+                // Moves king one position to right or left again
+                board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos + offset);
+                board.kings |= 1 << (pos + offset * 2);
+                board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << pos + offset);
+                board.black_pieces |= 1 << (pos + offset * 2);
+                // Checks if check is present from end position
+                if !check(&board, pos + offset * 2) {
+                    return true;
+                }
             }
         }
     }
     false
 }
 
-pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
-    let board_copy: board::Board = board::copy_board(&board);
+pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board::Board> {
+    let board_copy: Box<board::Board> = board::copy_board(&board);
     let piece = board::get_piece(&board, start);
     // Makes sure the piece you are trying to move is of your color
     if piece.color != board.turn {
@@ -314,6 +430,23 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
         if moves & (1 << end) == 0 {
             return board;
         }
+
+        let enemy_piece: board::Piece = board::get_piece(&board, end);
+        if enemy_piece.piece_type != piece.piece_type && enemy_piece.piece_type != EMPTY {
+            if enemy_piece.piece_type == PAWN {
+                board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            } else if enemy_piece.piece_type == ROOK {
+                board.rooks &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            } else if enemy_piece.piece_type == KNIGHT {
+                board.knights &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            } else if enemy_piece.piece_type == BISHOP {
+                board.bishops &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            } else if enemy_piece.piece_type == QUEEN {
+                board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            } else {
+                board.kings &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+            }
+        }
         // Executes en passant
         if (piece.color == WHITE && end == board.en_passant + 8) || (piece.color == BLACK && end == board.en_passant - 8) {
             if piece.color == WHITE {
@@ -322,6 +455,10 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
                 board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.en_passant);
             }
             board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.en_passant);
+        } else if piece.color == WHITE {
+            board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
+        } else if piece.color == BLACK {
+            board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         }
         // If pawn has moved two squares, en passant is possible on the end square, otherwise en passant is not possible on the following move
         if (start - end).abs() == 16 {
@@ -330,8 +467,13 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
             board.en_passant = 0;
         }
 
-        board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
-        board.pawns |= 1 << end;
+        if (board.turn == WHITE && end / 8 == 7) || (board.turn == BLACK && end / 8 == 0) {
+            board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+            board.queens |= 1 << end;
+        } else {
+            board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
+            board.pawns |= 1 << end;
+        }
 
     } else if piece.piece_type == KNIGHT {
         let moves: u64 = gen_knight_moves(&board, start);
@@ -419,7 +561,6 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
                     }
                 }
             }
-
         } else if piece.piece_type == BISHOP {
             board.bishops &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.bishops |= 1 << end;
@@ -432,7 +573,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     // This part deletes the potential piece on the end square
     let enemy_piece = board::get_piece(&board, end);
     // Makes sure the piece trying to move is not deleted and also checks that the end square is not empty
-    if enemy_piece.piece_type != piece.piece_type && enemy_piece.piece_type != EMPTY {
+    if piece.piece_type != PAWN && enemy_piece.piece_type != piece.piece_type && enemy_piece.piece_type != EMPTY {
         if enemy_piece.piece_type == PAWN {
             board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         } else if enemy_piece.piece_type == ROOK {
@@ -441,7 +582,6 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
             board.knights &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         } else if enemy_piece.piece_type == BISHOP {
             board.bishops &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
-            println!("{}", board.bishops);
         } else if enemy_piece.piece_type == QUEEN {
             board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         } else {
@@ -449,7 +589,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
         }
     }
 
-    if enemy_piece.color != EMPTY && enemy_piece.color != piece.color {
+    if enemy_piece.color != EMPTY && enemy_piece.color != piece.color && piece.piece_type != PAWN {
         if piece.color == WHITE {
             board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << end);
         } else if piece.color == BLACK {
@@ -461,7 +601,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     if piece.color == WHITE {
         board.white_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
         board.white_pieces |= 1 << end;
-    } else {
+    } else if piece.color == BLACK{
         board.black_pieces &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
         board.black_pieces |= 1 << end;
     }
@@ -470,8 +610,7 @@ pub fn make_move(mut board: board::Board, start: i8, end: i8) -> board::Board {
     if piece.piece_type != PAWN {
         board.en_passant = 0;
     }
-
-    if check(&board) {
+    if check(&board, board::get_king_pos(&board, board.turn)) {
         board_copy
     } else {
         if piece.color == WHITE {

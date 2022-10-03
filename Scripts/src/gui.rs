@@ -17,9 +17,8 @@ const SQUARE_Y: f32 = 0.75 * SQUARE_SIZE;
 use crate::MainState;
 
 impl event::EventHandler for MainState {
-    fn update(&mut self, ctx: &mut Context) -> GameResult {
-
-        let board_copy: board::Board = board::copy_board(&self.board);
+    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+        let board_copy: Box<board::Board> = board::copy_board(&self.board);
 
         if self.frame < 2 {
             self.needs_refresh = true;
@@ -82,10 +81,10 @@ impl event::EventHandler for MainState {
 
             if !self.selected_squares[square as usize] {
                 let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, colors[color])?;
-                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default());
+                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
             } else {
                 let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, selected_colors[color as usize])?;
-                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default());
+                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
             }
 
             if piece.piece_type != board::EMPTY {

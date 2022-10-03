@@ -39,7 +39,7 @@ pub struct Piece {
 }
 // Represents a square as two numbers, the color and piece on it
 // If no piece is present piece_type and color will be EMPTY which is equal to 0
-pub fn get_piece(board: &Board, pos: i8) -> Piece {
+pub fn get_piece(board: &Box<Board>, pos: i8) -> Piece {
     let color = if board.white_pieces & (1 << pos) > 0 { WHITE } else if board.black_pieces & (1 << pos) > 0 { BLACK } else { EMPTY };
     let mut piece_type: u8 = 0;
     if color == EMPTY {
@@ -57,10 +57,25 @@ pub fn get_piece(board: &Board, pos: i8) -> Piece {
     } else if (1 << pos) & board.kings > 0 {
         piece_type = KING;
     }
-    return Piece{color, piece_type}
+    Piece{color, piece_type}
 }
 
-pub fn print_board(board: &Board) {
+pub fn get_king_pos(board: &Box<Board>, color: u8) -> i8 {
+    let mut king_bit_board: u64 = 0;
+    if color == WHITE {
+        king_bit_board = board.white_pieces & board.kings;
+    } else {
+        king_bit_board = board.black_pieces & board.kings;
+    }
+    for square in 0..64 {
+        if king_bit_board & (1 << square) > 1 {
+            return square;
+        }
+    }
+    return -1
+}
+
+pub fn print_board(board: &Box<Board>) {
     println!(" --- --- --- --- --- --- --- ---");
     for i in 0..8 {
         print!("|");
@@ -96,7 +111,7 @@ pub fn converter(piece: &Piece) -> char {
     }
 }
 // Creates the starting positions bitboard
-pub fn create_board() -> Board {
+pub fn create_board() -> Box<Board> {
     let pawns: u64 = (((1 << 8) - 1) << 8) + (((1 << 8) - 1) << 48);
     let rooks: u64 = (1 << 0) + (1 << 7) + (1 << 56) + (1 << 63);
     let knights: u64 = (1 << 1) + (1 << 6) + (1 << 57) + (1 << 62);
@@ -110,7 +125,7 @@ pub fn create_board() -> Board {
     let castling: u8 = (1 << 4) - 1;
     let turn: u8 = 8;
 
-    Board{
+    Box::new(Board{
         pawns,
         knights,
         rooks,
@@ -124,10 +139,10 @@ pub fn create_board() -> Board {
         en_passant,
         castling,
         turn
-    }
+    })
 }
 // Convert immutable &Board to mutable Board
-pub fn copy_board(board: &Board) -> Board {
+pub fn copy_board(board: &Box<Board>) -> Box<Board> {
     let pawns: u64 = board.pawns;
     let rooks: u64 = board.rooks;
     let knights: u64 = board.knights;
@@ -140,7 +155,7 @@ pub fn copy_board(board: &Board) -> Board {
     let en_passant: i8 = board.en_passant;
     let castling: u8 = board.castling;
     let turn: u8 = board.turn;
-    Board {
+    Box::new(Board {
         pawns,
         rooks,
         knights,
@@ -154,5 +169,5 @@ pub fn copy_board(board: &Board) -> Board {
         en_passant,
         castling,
         turn
-    }
+    })
 }
