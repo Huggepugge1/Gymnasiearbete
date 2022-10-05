@@ -87,6 +87,7 @@ impl event::EventHandler for MainState {
                 graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
             }
 
+
             if piece.piece_type != board::EMPTY {
                 let path: String = format!("/{0}_{1}.png", piece_link[&piece.color], piece_link[&piece.piece_type]);
                 let img: Image = graphics::Image::new(ctx, path)?;
@@ -104,7 +105,31 @@ impl event::EventHandler for MainState {
                     })
                 )?;
             }
+            if 1 << square & self.board.current_move > 0 {
+                let x: f32 = x + 50.0;
+                let y: f32 = y + 50.0 * 0.75;
+                let elliplse = graphics::Mesh::new_ellipse (
+                    ctx,
+                    graphics::DrawMode::fill(),
+                    mint::Point2 {
+                        x,
+                        y
+                    },
+                    15.0,
+                    11.25,
+                    0.001,
+                    graphics::Color {
+                        r: 0.0,
+                        g: 0.0,
+                        b: 0.0,
+                        a: 0.5
+                    },
+                )?;
+                graphics::draw(ctx, &elliplse, graphics::DrawParam::default())?;
+            }
         }
+
+
         if self.board.promoted != -1 {
             let x: f32 = 200.0;
             let y: f32 = 300.0;
@@ -152,8 +177,10 @@ impl event::EventHandler for MainState {
             if self.selected_squares[square as usize] == false && self.number_of_selected_squares < 2 {
                 if self.number_of_selected_squares == 0 {
                     self.start_square = square;
+                    self.board.current_move = moves::get_legal_moves(&self.board, square);
                 } else {
                     self.end_square = square;
+                    self.board.current_move = 0;
                 }
 
                 self.selected_squares[square as usize] = true;
@@ -165,6 +192,7 @@ impl event::EventHandler for MainState {
 
                 if self.number_of_selected_squares == 0 {
                     self.start_square = -1;
+                    self.board.current_move = 0;
                 } else {
                     if self.start_square == square {
                         self.start_square = self.end_square;

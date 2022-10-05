@@ -1,4 +1,6 @@
 use crate::board;
+use crate::board::{get_king_pos, get_piece};
+
 // Number representation of all pieces and colors
 const EMPTY: u8 = 0;
 const PAWN: u8 = 1;
@@ -32,24 +34,24 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
 
     if board.turn == WHITE {
         for offset in black_pawn_offsets {
-            let piece = board::get_piece(board, pos + offset);
+            if pos + offset > 64 {
+                continue;
+            }
+            let piece: board::Piece = board::get_piece(board, pos + offset);
 
             if piece.piece_type == PAWN && piece.color != board.turn {
                 return true;
-            }
-            if piece.piece_type != EMPTY {
-                break;
             }
         }
     } else {
         for offset in white_pawn_offsets {
-            let piece = board::get_piece(board, pos + offset);
+            if pos + offset < 0 {
+                continue;
+            }
+            let piece: board::Piece = board::get_piece(board, pos + offset);
 
             if piece.piece_type == PAWN && piece.color != board.turn {
                 return true;
-            }
-            if piece.piece_type != EMPTY {
-                break;
             }
         }
     }
@@ -61,13 +63,12 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
                 continue;
             }
 
-            let piece = board::get_piece(board, pos + offset);
-
+            let piece: board::Piece = board::get_piece(board, pos + offset);
             if piece.piece_type == KNIGHT && piece.color != board.turn {
                 return true
             }
             if piece.piece_type != EMPTY {
-                break;
+                continue;
             }
         }
     }
@@ -84,8 +85,7 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
                 break;
             }
 
-            let piece = board::get_piece(board, pos + (offset * steps));
-
+            let piece: board::Piece = board::get_piece(board, pos + offset);
             if (piece.piece_type == BISHOP || piece.piece_type == QUEEN) && piece.color != board.turn {
                 return true;
             }
@@ -102,15 +102,14 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
         loop {
             let distance: Distance = calculate_distance(pos, pos + offset*steps);
             if !(distance.files == 0 || distance.ranks == 0) {
-                break;
+                continue;
             }
 
             if 0 > (pos + offset*steps) || (pos + offset*steps) > 63 {
                 break;
             }
 
-            let piece = board::get_piece(board, pos + (offset * steps));
-
+            let piece: board::Piece = board::get_piece(board, pos + offset);
             if (piece.piece_type == ROOK || piece.piece_type == QUEEN) && piece.color != board.turn {
                 return true;
             }
@@ -121,6 +120,7 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
             steps += 1;
         }
     }
+
     for offset in king_offsets {
         // Makes sure move is inside the board
         if pos + offset < 64 && 0 <= pos + offset {
@@ -131,15 +131,9 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
                 continue;
             }
             // Checks if possible piece is on square and makes sure it is not your own
-            let enemy_piece: board::Piece = board::get_piece(board, pos+offset);
-            
-            let piece = board::get_piece(board, pos + offset);
-
+            let piece: board::Piece = board::get_piece(board, pos + offset);
             if piece.piece_type == KING && piece.color != board.turn {
                 return true;
-            }
-            if piece.piece_type != EMPTY {
-                break;
             }
         }
     }
@@ -646,4 +640,19 @@ pub fn promote_piece(mut board: Box<board::Board>) -> Box<board::Board> {
     board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.promoted);
     board.promoted = -1;
     board
+}
+
+pub fn get_legal_moves(board: &Box<board::Board>, pos: i8) -> u64 {
+    let piece: board::Piece = get_piece(&board, pos);
+    if piece.piece_type == PAWN {
+        gen_pawn_moves(&board, pos)
+    } else if piece.piece_type == ROOK || piece.piece_type == BISHOP || piece.piece_type == QUEEN {
+        gen_sliding_moves(&board, pos)
+    } else if piece.piece_type == KNIGHT {
+        gen_knight_moves(&board, pos)
+    } else if piece.piece_type == KING {
+        gen_king_moves(&board, pos)
+    } else {
+        0
+    }
 }
