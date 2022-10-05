@@ -22,12 +22,12 @@ impl event::EventHandler for MainState {
 
         if self.frame < 2 {
             self.needs_refresh = true;
+        } else {
+            self.needs_refresh = false;
         }
-        self.frame += 1;
 
         if self.number_of_selected_squares == 2 {
             self.board = moves::make_move(board_copy, self.start_square, self.end_square);
-
             self.number_of_selected_squares = 0;
             self.selected_squares[self.start_square as usize] = false;
             self.selected_squares[self.end_square as usize] = false;
@@ -105,7 +105,36 @@ impl event::EventHandler for MainState {
                 )?;
             }
         }
+        if self.board.promoted != -1 {
+            let x: f32 = 200.0;
+            let y: f32 = 300.0;
+            let pieces: [u8;4] = [board::ROOK, board::KNIGHT, board::BISHOP, board::QUEEN];
+            let color: u8 = self.board.turn;
+            for i in 0..4 {
+                let curr_square = graphics::Rect::new(x + i as f32 * 100.0, y, SQUARE_SIZE, SQUARE_Y);
+                let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, graphics::Color::WHITE)?;
+                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
 
+                let x: f32 = x + i as f32 * 100.0;
+                let path: String = format!("/{0}_{1}.png", piece_link[&color], piece_link[&pieces[i]]);
+                let img: Image = graphics::Image::new(ctx, path)?;
+
+                graphics::draw(
+                    ctx,
+                    &img,
+                    graphics::DrawParam::default()
+                        .dest(mint::Point2 {
+                            x,
+                            y
+                        }).scale(mint::Vector2 {
+                        x: 1.0,
+                        y: 0.75
+                    })
+                )?;
+            }
+        }
+
+        self.frame += 1;
         graphics::present(ctx)?;
         self.needs_refresh = false;
         Ok(())
@@ -117,31 +146,46 @@ impl event::EventHandler for MainState {
         _button: MouseButton,
         _x: f32,
         _y: f32) {
-        self.needs_refresh = true;
+        self.frame -= 1;
         let square: i8 = (((_x / SQUARE_SIZE) as u32 % 8) + ((((800.0 - _y) / SQUARE_SIZE) as u32 % 8) * 8)) as i8;
-        if self.selected_squares[square as usize] == false && self.number_of_selected_squares < 2 {
-            if self.number_of_selected_squares == 0 {
-                self.start_square = square;
-            } else {
-                self.end_square = square;
-            }
-
-            self.selected_squares[square as usize] = true;
-            self.number_of_selected_squares += 1;
-
-        } else if self.selected_squares[square as usize] == true {
-            self.selected_squares[square as usize] = false;
-            self.number_of_selected_squares -= 1;
-
-            if self.number_of_selected_squares == 0 {
-                self.start_square = -1;
-            } else {
-                if self.start_square == square {
-                    self.start_square = self.end_square;
-                    self.end_square = -1;
+        if self.board.promoted == -1 {
+            if self.selected_squares[square as usize] == false && self.number_of_selected_squares < 2 {
+                if self.number_of_selected_squares == 0 {
+                    self.start_square = square;
                 } else {
-                    self.end_square = -1;
+                    self.end_square = square;
                 }
+
+                self.selected_squares[square as usize] = true;
+                self.number_of_selected_squares += 1;
+
+            } else if self.selected_squares[square as usize] == true {
+                self.selected_squares[square as usize] = false;
+                self.number_of_selected_squares -= 1;
+
+                if self.number_of_selected_squares == 0 {
+                    self.start_square = -1;
+                } else {
+                    if self.start_square == square {
+                        self.start_square = self.end_square;
+                        self.end_square = -1;
+                    } else {
+                        self.end_square = -1;
+                    }
+                }
+            }
+        } else {
+            if square > 25 && square < 30 {
+                if square == 26 {
+                    self.board.promoted_piece = board::ROOK;
+                } else if square == 27 {
+                    self.board.promoted_piece = board::KNIGHT;
+                } else if square == 28 {
+                    self.board.promoted_piece = board::BISHOP;
+                } else if square == 29 {
+                    self.board.promoted_piece = board::QUEEN;
+                }
+                self.board = moves::promote_piece(board::copy_board(&self.board))
             }
         }
     }

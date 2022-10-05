@@ -469,10 +469,16 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
 
         if (board.turn == WHITE && end / 8 == 7) || (board.turn == BLACK && end / 8 == 0) {
             board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
-            board.queens |= 1 << end;
+            board.pawns |= 1 << end;
+            board.promoted = end;
         } else {
             board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.pawns |= 1 << end;
+            if board.turn == WHITE {
+                board.turn = BLACK
+            } else {
+                board.turn = WHITE;
+            };
         }
 
     } else if piece.piece_type == KNIGHT {
@@ -613,11 +619,31 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
     if check(&board, board::get_king_pos(&board, board.turn)) {
         board_copy
     } else {
-        if piece.color == WHITE {
+        if board.turn == WHITE && piece.piece_type != PAWN  {
             board.turn = BLACK;
-        } else {
+        } else if piece.piece_type != PAWN {
             board.turn = WHITE;
         }
         board
     }
+}
+
+pub fn promote_piece(mut board: Box<board::Board>) -> Box<board::Board> {
+    if board.promoted_piece == ROOK {
+        board.rooks |= 1<< board.promoted;
+    } else if board.promoted_piece == KNIGHT {
+        board.knights |= 1 << board.promoted;
+    } else if board.promoted_piece == BISHOP {
+        board.bishops |= 1 << board.promoted;
+    } else if board.promoted_piece == QUEEN {
+        board.queens |= 1 << board.promoted;
+    }
+    if board.turn == WHITE {
+        board.turn = BLACK;
+    } else {
+        board.turn = WHITE;
+    }
+    board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.promoted);
+    board.promoted = -1;
+    board
 }

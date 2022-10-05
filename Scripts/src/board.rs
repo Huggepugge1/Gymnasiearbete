@@ -30,7 +30,10 @@ pub struct Board {
     // Fourth bit is queens side castling with black
     pub castling: u8,
     // 8 == white, 16 == black
-    pub turn: u8
+    pub turn: u8,
+
+    pub promoted: i8,
+    pub promoted_piece: u8
 }
 // A way of representing a piece
 pub struct Piece {
@@ -125,6 +128,9 @@ pub fn create_board() -> Box<Board> {
     let castling: u8 = (1 << 4) - 1;
     let turn: u8 = 8;
 
+    let promoted: i8 = -1;
+    let promoted_piece: u8 = 0;
+
     Box::new(Board{
         pawns,
         knights,
@@ -138,7 +144,10 @@ pub fn create_board() -> Box<Board> {
 
         en_passant,
         castling,
-        turn
+        turn,
+
+        promoted,
+        promoted_piece
     })
 }
 // Convert immutable &Board to mutable Board
@@ -155,6 +164,9 @@ pub fn copy_board(board: &Box<Board>) -> Box<Board> {
     let en_passant: i8 = board.en_passant;
     let castling: u8 = board.castling;
     let turn: u8 = board.turn;
+    let promoted: i8 = board.promoted;
+    let promoted_piece: u8 = board.promoted_piece;
+
     Box::new(Board {
         pawns,
         rooks,
@@ -168,6 +180,9 @@ pub fn copy_board(board: &Box<Board>) -> Box<Board> {
 
         en_passant,
         castling,
-        turn
+        turn,
+
+        promoted,
+        promoted_piece
     })
 }

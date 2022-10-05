@@ -13,7 +13,7 @@ pub struct MainState {
     pub start_square: i8,
     pub end_square: i8,
     pub needs_refresh: bool,
-    pub frame: u64,
+    pub frame: i8,
 
     pub board: Box<board::Board>
 }
