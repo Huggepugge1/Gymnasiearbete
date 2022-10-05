@@ -157,7 +157,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                 moves |= 1 << (pos + 8);
             }
 
-            if board::get_piece(&board, pos + 8).piece_type == EMPTY && board::get_piece(&board, pos + 16).piece_type == EMPTY && pos / 8 == 1 {
+            if pos / 8 == 1 && board::get_piece(&board, pos + 8).piece_type == EMPTY && board::get_piece(&board, pos + 16).piece_type == EMPTY {
                 moves |= 1 << (pos + 16);
             }
 
@@ -165,7 +165,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                 moves |= 1 << (pos + 7);
             }
 
-            if board::get_piece(&board, pos + 9).color != piece.color && board::get_piece(&board, pos + 9).color != EMPTY && (pos % 8) - ((pos + 9) % 8) == -1 {
+            if pos + 9 < 64 && board::get_piece(&board, pos + 9).color != piece.color && board::get_piece(&board, pos + 9).color != EMPTY && (pos % 8) - ((pos + 9) % 8) == -1 {
                 moves |= 1 << (pos + 9);
             }
 
@@ -182,7 +182,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                 moves |= 1 << (pos - 8);
             }
 
-            if board::get_piece(&board, pos - 8).piece_type == EMPTY && board::get_piece(&board, pos - 16).piece_type == EMPTY && pos / 8 == 6 {
+            if pos / 8 == 6 && board::get_piece(&board, pos - 8).piece_type == EMPTY && board::get_piece(&board, pos - 16).piece_type == EMPTY {
                 moves |= 1 << (pos + -16);
             }
 
@@ -190,7 +190,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                 moves |= 1 << (pos + -7);
             }
 
-            if board::get_piece(&board, pos - 9).color != piece.color && board::get_piece(&board, pos - 9).color != EMPTY && (pos % 8) - ((pos - 9) % 8) == 1 {
+            if pos - 9 > 0 && board::get_piece(&board, pos - 9).color != piece.color && board::get_piece(&board, pos - 9).color != EMPTY && (pos % 8) - ((pos - 9) % 8) == 1 {
                 moves |= 1 << (pos - 9);
             }
 
