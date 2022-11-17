@@ -66,12 +66,11 @@ pub fn get_piece(board: &Box<Board>, pos: i8) -> Piece {
 }
 
 pub fn get_king_pos(board: &Box<Board>, color: u8) -> i8 {
-    let mut king_bit_board: u64 = 0;
-    if color == WHITE {
-        king_bit_board = board.white_pieces & board.kings;
+    let king_bit_board = if color == WHITE {
+        board.white_pieces & board.kings
     } else {
-        king_bit_board = board.black_pieces & board.kings;
-    }
+        board.black_pieces & board.kings
+    };
     for square in 0..64 {
         if king_bit_board & (1 << square) > 1 {
             return square;
@@ -80,41 +79,6 @@ pub fn get_king_pos(board: &Box<Board>, color: u8) -> i8 {
     return -1
 }
 
-pub fn print_board(board: &Box<Board>) {
-    println!(" --- --- --- --- --- --- --- ---");
-    for i in 0..8 {
-        print!("|");
-        for j in 0..8 {
-            print!(" {} |", converter(&get_piece(&board, 63 - ((i * 8) + (7 - j)))));
-        }
-        println!("");
-        println!(" --- --- --- --- --- --- --- ---");
-    }
-}
-// Converts u8 to understandable text
-pub fn converter(piece: &Piece) -> char {
-    let c;
-    if piece.piece_type == PAWN {
-        c = 'p';
-    } else if piece.piece_type == ROOK {
-        c = 'r';
-    } else if piece.piece_type == KNIGHT {
-        c = 'n';
-    } else if piece.piece_type == BISHOP {
-        c = 'b';
-    } else if piece.piece_type == QUEEN {
-        c = 'q';
-    } else if piece.piece_type == KING {
-        c = 'k';
-    } else {
-        c = ' ';
-    }
-    return if piece.color == WHITE {
-        c.to_ascii_uppercase()
-    } else {
-        c
-    }
-}
 // Creates the starting positions bitboard
 pub fn create_board() -> Box<Board> {
     let pawns: u64 = (((1 << 8) - 1) << 8) + (((1 << 8) - 1) << 48);

@@ -31,14 +31,12 @@ impl MainState {
             frame: 0,
 
             board: board::create_board(),
-            difficulty: ai::EASY
+            difficulty: 100
         }
     }
 }
 
 fn main() -> GameResult {
-    let mut board = board::create_board();
-
     let cb = ggez::ContextBuilder::new("yes", "Yes");
     let (mut ctx, event_loop) = cb.build()?;
 

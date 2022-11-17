@@ -1,5 +1,4 @@
 use crate::board;
-use crate::board::{get_king_pos, get_piece};
 
 // Number representation of all pieces and colors
 const EMPTY: u8 = 0;
@@ -236,7 +235,6 @@ pub fn gen_sliding_moves(board: &Box<board::Board>, pos: i8) -> u64 {
         for offset in diagonal_offsets {
             let mut steps: i8 = 1;
             loop {
-                println!("{}", pos + offset*steps);
                 let distance: Distance = calculate_distance(pos, pos + offset*steps);
                 if !(distance.files == distance.ranks) {
                     break;
@@ -265,7 +263,7 @@ pub fn gen_sliding_moves(board: &Box<board::Board>, pos: i8) -> u64 {
 
             loop {
                 let distance: Distance = calculate_distance(pos, pos + offset*steps);
-                if !((distance.files == 0 && distance.ranks != 0) || (distance.files != 0 && distance.ranks == 0) {
+                if !((distance.files == 0 && distance.ranks != 0) || (distance.files != 0 && distance.ranks == 0)) {
                     break;
                 }
 
@@ -538,7 +536,6 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
         if moves & (1 << end) == 0 {
             return board;
         }
-        println!("{}", moves);
         if piece.piece_type == ROOK {
             board.rooks &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.rooks |= 1 << end;
@@ -569,6 +566,7 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
             board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.queens |= 1 << end;
         }
+        println!("{}", moves);
     }
 
     // This part deletes the potential piece on the end square
@@ -645,7 +643,6 @@ pub fn promote_piece(mut board: Box<board::Board>) -> Box<board::Board> {
 
 pub fn get_legal_moves(board: &Box<board::Board>, pos: i8) -> u64 { 
     let piece = board::get_piece(board, pos);
-    println!("{}", piece.piece_type);
     if piece.color != board.turn {
         0
     } else if piece.piece_type == PAWN {
