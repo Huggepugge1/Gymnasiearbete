@@ -538,7 +538,7 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
         if moves & (1 << end) == 0 {
             return board;
         }
-
+        println!("{}", moves);
         if piece.piece_type == ROOK {
             board.rooks &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.rooks |= 1 << end;
