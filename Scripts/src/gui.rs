@@ -16,6 +16,7 @@ const SQUARE_Y: f32 = 0.75 * SQUARE_SIZE;
 
 use crate::MainState;
 use crate::ai;
+use crate::moves::promote_piece;
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
@@ -38,7 +39,14 @@ impl event::EventHandler for MainState {
             return Ok(());
         }
 
-        if self.board.turn == board::BLACK && self.difficulty == ai::EASY {
+        if self.board.promoted != -1 {
+            self.board = moves::promote_piece(board::copy_board(&self.board));
+            self.board.turn = if self.board.turn == board::WHITE {
+                board::BLACK
+            } else {
+                board::WHITE
+            };
+        } else if self.board.turn == board::BLACK && self.difficulty == ai::EASY {
             let (start_square, end_square) = ai::random_move(&self.board);
             self.board = moves::make_move(board_copy, start_square, end_square);
             self.number_of_selected_squares = 0;
@@ -55,6 +63,7 @@ impl event::EventHandler for MainState {
             self.start_square = -1;
             self.end_square = -1;
         }
+
         Ok(())
     }
 
