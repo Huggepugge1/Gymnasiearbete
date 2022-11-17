@@ -84,7 +84,7 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
                 break;
             }
 
-            let piece: board::Piece = board::get_piece(board, pos + offset);
+            let piece: board::Piece = board::get_piece(board, pos + offset*steps);
             if (piece.piece_type == BISHOP || piece.piece_type == QUEEN) && piece.color != board.turn {
                 return true;
             }
@@ -99,6 +99,7 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
         let mut steps: i8 = 1;
 
         loop {
+            println!("debug");
             let distance: Distance = calculate_distance(pos, pos + offset*steps);
             if !(distance.files == 0 || distance.ranks == 0) {
                 continue;
@@ -108,7 +109,7 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
                 break;
             }
 
-            let piece: board::Piece = board::get_piece(board, pos + offset);
+            let piece: board::Piece = board::get_piece(board, pos + offset*steps);
             if (piece.piece_type == ROOK || piece.piece_type == QUEEN) && piece.color != board.turn {
                 return true;
             }
@@ -566,7 +567,6 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
             board.queens &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.queens |= 1 << end;
         }
-        println!("{}", moves);
     }
 
     // This part deletes the potential piece on the end square
@@ -610,15 +610,15 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
         board.en_passant = 0;
     }
     if check(&board, board::get_king_pos(&board, board.turn)) {
-        board_copy
+        return board_copy;
     } else {
         if board.turn == WHITE && piece.piece_type != PAWN  {
             board.turn = BLACK;
         } else if piece.piece_type != PAWN {
             board.turn = WHITE;
         }
-        board
     }
+    board
 }
 
 pub fn promote_piece(mut board: Box<board::Board>) -> Box<board::Board> {
