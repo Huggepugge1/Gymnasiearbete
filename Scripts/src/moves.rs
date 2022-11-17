@@ -56,7 +56,7 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
     }
 
     for offset in knight_offsets {
-        if pos + offset < 64 && 0 <= pos + offset {
+        if 0 <= pos + offset && pos + offset <= 63 {
             let distance: Distance = calculate_distance(pos, pos + offset);
             if !((distance.files == 1 && distance.ranks == 2) || (distance.files == 2 && distance.ranks == 1)) {
                 continue;
@@ -97,12 +97,10 @@ pub fn check(board: &Box<board::Board>, pos: i8) -> bool {
 
     for offset in straight_offsets {
         let mut steps: i8 = 1;
-
         loop {
-            println!("debug");
             let distance: Distance = calculate_distance(pos, pos + offset*steps);
             if !(distance.files == 0 || distance.ranks == 0) {
-                continue;
+                break;
             }
 
             if 0 > (pos + offset*steps) || (pos + offset*steps) > 63 {
@@ -147,7 +145,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
     if piece.piece_type == PAWN {
         // Pawns move differently depending on whether there white or black
         if piece.color == WHITE {
-            if board::get_piece(&board, pos + 8).piece_type == EMPTY {
+            if pos + 8 <= 63 && board::get_piece(&board, pos + 8).piece_type == EMPTY {
                 moves |= 1 << (pos + 8);
             }
 
@@ -155,7 +153,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                 moves |= 1 << (pos + 16);
             }
 
-            if board::get_piece(&board, pos + 7).color != piece.color && board::get_piece(&board, pos + 7).color != EMPTY && (pos % 8) - ((pos + 7) % 8) == 1 {
+            if pos + 8 <= 63 && board::get_piece(&board, pos + 7).color != piece.color && board::get_piece(&board, pos + 7).color != EMPTY && (pos % 8) - ((pos + 7) % 8) == 1 {
                 moves |= 1 << (pos + 7);
             }
 
@@ -172,7 +170,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
             }
 
         } else {
-            if board::get_piece(&board, pos - 8).piece_type == EMPTY {
+            if pos - 8 > 0 && board::get_piece(&board, pos - 8).piece_type == EMPTY {
                 moves |= 1 << (pos - 8);
             }
 
@@ -180,7 +178,7 @@ pub fn gen_pawn_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                 moves |= 1 << (pos + -16);
             }
 
-            if board::get_piece(&board, pos - 7).color != piece.color && board::get_piece(&board, pos - 7).color != EMPTY && (pos % 8) - ((pos - 7) % 8) == -1 {
+            if pos - 7 > 0 && board::get_piece(&board, pos - 7).color != piece.color && board::get_piece(&board, pos - 7).color != EMPTY && (pos % 8) - ((pos - 7) % 8) == -1 {
                 moves |= 1 << (pos + -7);
             }
 
@@ -468,11 +466,6 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
         } else {
             board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << start);
             board.pawns |= 1 << end;
-            if board.turn == WHITE {
-                board.turn = BLACK
-            } else {
-                board.turn = WHITE;
-            };
         }
 
     } else if piece.piece_type == KNIGHT {
@@ -612,10 +605,10 @@ pub fn make_move(mut board: Box<board::Board>, start: i8, end: i8) -> Box<board:
     if check(&board, board::get_king_pos(&board, board.turn)) {
         return board_copy;
     } else {
-        if board.turn == WHITE && piece.piece_type != PAWN  {
-            board.turn = BLACK;
-        } else if piece.piece_type != PAWN {
-            board.turn = WHITE;
+        board.turn = if board.turn == WHITE {
+            BLACK
+        } else {
+            WHITE
         }
     }
     board

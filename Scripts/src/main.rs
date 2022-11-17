@@ -31,7 +31,7 @@ impl MainState {
             frame: 0,
 
             board: board::create_board(),
-            difficulty: 100
+            difficulty: ai::EASY
         }
     }
 }

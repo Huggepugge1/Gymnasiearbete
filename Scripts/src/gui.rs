@@ -18,7 +18,7 @@ use crate::MainState;
 use crate::ai;
 
 impl event::EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
 
         if self.frame < 2 {
             self.needs_refresh = true;
@@ -27,7 +27,17 @@ impl event::EventHandler for MainState {
         }
 
         let board_copy: Box<board::Board> = board::copy_board(&self.board);
-        
+
+        if ai::generate_moves(&self.board).len() == 0 {
+            if self.board.turn == board::BLACK {
+                println!("White has won!");
+            } else {
+                println!("Black has won!")
+            }
+            event::quit(ctx);
+            return Ok(());
+        }
+
         if self.board.turn == board::BLACK && self.difficulty == ai::EASY {
             let (start_square, end_square) = ai::random_move(&self.board);
             self.board = moves::make_move(board_copy, start_square, end_square);
