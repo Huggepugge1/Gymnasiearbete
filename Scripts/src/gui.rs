@@ -34,6 +34,7 @@ impl event::EventHandler for MainState {
             self.number_of_selected_squares = 0;
             self.selected_squares = [false; 64];
             self.needs_refresh = true;
+            self.frame = 0;
             self.start_square = -1;
             self.end_square = -1;
         } else if self.number_of_selected_squares == 2 {
