@@ -20,16 +20,17 @@ use crate::moves::promote_piece;
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-
         if self.frame < 2 {
             self.needs_refresh = true;
+            return Ok(());
         } else {
             self.needs_refresh = false;
         }
 
         let board_copy: Box<board::Board> = board::copy_board(&self.board);
 
-        if ai::generate_moves(&self.board).len() == 0 {
+        if self.board.promoted == -1 && ai::generate_moves(&self.board).len() == 0 {
+            board::print_board(&self.board);
             if self.board.turn == board::BLACK {
                 println!("White has won!");
             } else {
@@ -39,22 +40,37 @@ impl event::EventHandler for MainState {
             return Ok(());
         }
 
-        if self.board.promoted != -1 {
+        if self.board.promoted_piece != 0 {
             self.board = moves::promote_piece(board::copy_board(&self.board));
+            self.board.promoted_piece = 0;
+
+        } else if self.board.promoted != -1 {
             self.board.turn = if self.board.turn == board::WHITE {
                 board::BLACK
             } else {
                 board::WHITE
             };
-        } else if self.board.turn == board::BLACK && self.difficulty == ai::EASY {
-            let (start_square, end_square) = ai::random_move(&self.board);
-            self.board = moves::make_move(board_copy, start_square, end_square);
+
+        } else if true {
+            let mut start_square = 0;
+            let mut end_square = 0;
+            if self.difficulty == ai::EASY {
+                (start_square, end_square) = ai::random_move(&self.board);
+            }
+            if self.board.promoted != -1 {
+                println!("{}", self.board.promoted);
+                self.board.promoted_piece = start_square as u8;
+                self.board = moves::promote_piece(board::copy_board(&self.board));
+            } else {
+                self.board = moves::make_move(board_copy, start_square, end_square);
+            }
             self.number_of_selected_squares = 0;
             self.selected_squares = [false; 64];
             self.needs_refresh = true;
             self.frame = 0;
             self.start_square = -1;
             self.end_square = -1;
+
         } else if self.number_of_selected_squares == 2 {
             self.board = moves::make_move(board_copy, self.start_square, self.end_square);
             self.number_of_selected_squares = 0;
@@ -243,7 +259,6 @@ impl event::EventHandler for MainState {
                 } else if square == 29 {
                     self.board.promoted_piece = board::QUEEN;
                 }
-                self.board = moves::promote_piece(board::copy_board(&self.board))
             }
         }
     }

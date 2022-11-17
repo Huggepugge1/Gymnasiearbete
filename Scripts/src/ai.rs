@@ -2,6 +2,7 @@ use crate::board;
 use crate::moves;
 
 use rand::seq::SliceRandom;
+use rand::random;
 
 pub const EASY: i8 = 0;
 
@@ -24,5 +25,11 @@ pub fn generate_moves(board: &Box<board::Board>) -> Vec<(i8, i8)> {
 }
 
 pub fn random_move(board: &Box<board::Board>) -> (i8, i8) {
-    *generate_moves(board).choose(&mut rand::thread_rng()).unwrap()
+    if board.promoted != -1 {
+        let piece: i8 = *vec![2, 3, 4, 5].choose(&mut rand::thread_rng()).unwrap();
+        (piece, 0)
+
+    } else {
+        *generate_moves(board).choose(&mut rand::thread_rng()).unwrap()
+    }
 }

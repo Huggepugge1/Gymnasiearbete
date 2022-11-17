@@ -79,6 +79,41 @@ pub fn get_king_pos(board: &Box<Board>, color: u8) -> i8 {
     return -1
 }
 
+pub fn print_board(board: &Box<Board>) {
+    println!(" --- --- --- --- --- --- --- ---");
+    for i in 0..8 {
+        print!("|");
+        for j in 0..8 {
+            print!(" {} |", converter(&get_piece(&board, 63 - ((i * 8) + (7 - j)))));
+        }
+        println!("");
+        println!(" --- --- --- --- --- --- --- ---");
+    }
+}
+// Converts u8 to understandable text
+pub fn converter(piece: &Piece) -> char {
+    let c;
+    if piece.piece_type == PAWN {
+        c = 'p';
+    } else if piece.piece_type == ROOK {
+        c = 'r';
+    } else if piece.piece_type == KNIGHT {
+        c = 'n';
+    } else if piece.piece_type == BISHOP {
+        c = 'b';
+    } else if piece.piece_type == QUEEN {
+        c = 'q';
+    } else if piece.piece_type == KING {
+        c = 'k';
+    } else {
+        c = ' ';
+    }
+    return if piece.color == WHITE {
+        c.to_ascii_uppercase()
+    } else {
+        c
+    }
+}
 // Creates the starting positions bitboard
 pub fn create_board() -> Box<Board> {
     let pawns: u64 = (((1 << 8) - 1) << 8) + (((1 << 8) - 1) << 48);
