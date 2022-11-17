@@ -15,10 +15,10 @@ const SQUARE_SIZE: f32 = 100.0;
 const SQUARE_Y: f32 = 0.75 * SQUARE_SIZE;
 
 use crate::MainState;
+use crate::ai;
 
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        let board_copy: Box<board::Board> = board::copy_board(&self.board);
 
         if self.frame < 2 {
             self.needs_refresh = true;
@@ -26,11 +26,21 @@ impl event::EventHandler for MainState {
             self.needs_refresh = false;
         }
 
-        if self.number_of_selected_squares == 2 {
+        let board_copy: Box<board::Board> = board::copy_board(&self.board);
+        
+        if self.board.turn == board::BLACK && self.difficulty == ai::EASY {
+            let (start_square, end_square) = ai::random_move(&self.board);
+            self.board = moves::make_move(board_copy, start_square, end_square);
+            self.number_of_selected_squares = 0;
+            self.selected_squares = [false; 64];
+            self.needs_refresh = true;
+            self.start_square = -1;
+            self.end_square = -1;
+        } else if self.number_of_selected_squares == 2 {
             self.board = moves::make_move(board_copy, self.start_square, self.end_square);
             self.number_of_selected_squares = 0;
-            self.selected_squares[self.start_square as usize] = false;
-            self.selected_squares[self.end_square as usize] = false;
+            self.selected_squares = [false; 64];
+            self.needs_refresh = true;
             self.start_square = -1;
             self.end_square = -1;
         }
@@ -120,9 +130,9 @@ impl event::EventHandler for MainState {
                     0.001,
                     graphics::Color {
                         r: 0.0,
-                        g: 0.0,
+                        g: 1.0,
                         b: 0.0,
-                        a: 0.5
+                        a: 0.75
                     },
                 )?;
                 graphics::draw(ctx, &elliplse, graphics::DrawParam::default())?;

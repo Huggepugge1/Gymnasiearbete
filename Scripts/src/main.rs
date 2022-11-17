@@ -6,6 +6,7 @@ use ggez::event;
 mod gui;
 mod board;
 mod moves;
+mod ai;
 
 pub struct MainState {
     pub selected_squares: [bool; 64],
@@ -15,7 +16,8 @@ pub struct MainState {
     pub needs_refresh: bool,
     pub frame: i8,
 
-    pub board: Box<board::Board>
+    pub board: Box<board::Board>,
+    pub difficulty: i8
 }
 
 impl MainState {
@@ -28,7 +30,8 @@ impl MainState {
             needs_refresh: true,
             frame: 0,
 
-            board: board::create_board()
+            board: board::create_board(),
+            difficulty: ai::EASY
         }
     }
 }

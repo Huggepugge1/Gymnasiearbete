@@ -236,6 +236,7 @@ pub fn gen_sliding_moves(board: &Box<board::Board>, pos: i8) -> u64 {
         for offset in diagonal_offsets {
             let mut steps: i8 = 1;
             loop {
+                println!("{}", pos + offset*steps);
                 let distance: Distance = calculate_distance(pos, pos + offset*steps);
                 if !(distance.files == distance.ranks) {
                     break;
@@ -264,7 +265,7 @@ pub fn gen_sliding_moves(board: &Box<board::Board>, pos: i8) -> u64 {
 
             loop {
                 let distance: Distance = calculate_distance(pos, pos + offset*steps);
-                if !(distance.files == 0 || distance.ranks == 0) {
+                if !((distance.files == 0 && distance.ranks != 0) || (distance.files != 0 && distance.ranks == 0) {
                     break;
                 }
 
@@ -309,7 +310,7 @@ pub fn gen_king_moves(board: &Box<board::Board>, pos: i8) -> u64 {
                     if enemy_piece.color != piece.color {
                         moves |= 1 << (pos + offset);
                     }
-                    continue
+                    continue;
                 }
                 // Adds move to moves bitboard
                 moves |= 1 << (pos + offset);
@@ -642,17 +643,25 @@ pub fn promote_piece(mut board: Box<board::Board>) -> Box<board::Board> {
     board
 }
 
-pub fn get_legal_moves(board: &Box<board::Board>, pos: i8) -> u64 {
-    let piece: board::Piece = get_piece(&board, pos);
-    if piece.piece_type == PAWN {
-        gen_pawn_moves(&board, pos)
-    } else if piece.piece_type == ROOK || piece.piece_type == BISHOP || piece.piece_type == QUEEN {
-        gen_sliding_moves(&board, pos)
+pub fn get_legal_moves(board: &Box<board::Board>, pos: i8) -> u64 { 
+    let piece = board::get_piece(board, pos);
+    println!("{}", piece.piece_type);
+    if piece.color != board.turn {
+        0
+    } else if piece.piece_type == PAWN {
+        gen_pawn_moves(board, pos)
+    } else if piece.piece_type == ROOK {
+        gen_sliding_moves(board, pos)
     } else if piece.piece_type == KNIGHT {
-        gen_knight_moves(&board, pos)
+        gen_knight_moves(board, pos)
+    } else if piece.piece_type == BISHOP {
+        gen_sliding_moves(board, pos)
+    } else if piece.piece_type == QUEEN {
+        gen_sliding_moves(board, pos)
     } else if piece.piece_type == KING {
-        gen_king_moves(&board, pos)
+        gen_king_moves(board, pos)
     } else {
         0
     }
 }
+

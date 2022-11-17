@@ -10,6 +10,7 @@ pub const KING: u8 = 6;
 pub const WHITE: u8 = 8;
 pub const BLACK: u8 = 16;
 // A collection of bitmaps to represent the board in a simple and efficient manner
+#[derive(PartialEq)]
 pub struct Board {
     pub pawns: u64,
     pub rooks: u64,
@@ -127,7 +128,7 @@ pub fn create_board() -> Box<Board> {
     let black_pieces: u64 = ((1 << 16) - 1) << 48;
     let en_passant: i8 = 0;
     let castling: u8 = (1 << 4) - 1;
-    let turn: u8 = 8;
+    let turn: u8 = WHITE;
     let promoted: i8 = -1;
     let promoted_piece: u8 = 0;
     let current_move: u64 = 0;
