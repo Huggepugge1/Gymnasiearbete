@@ -2,7 +2,6 @@ use crate::board;
 use crate::moves;
 
 use rand::seq::SliceRandom;
-use rand::random;
 
 pub const EASY: i8 = 0;
 

@@ -16,7 +16,6 @@ const SQUARE_Y: f32 = 0.75 * SQUARE_SIZE;
 
 use crate::MainState;
 use crate::ai;
-use crate::moves::promote_piece;
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
