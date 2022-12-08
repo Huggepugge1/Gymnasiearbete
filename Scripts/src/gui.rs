@@ -50,7 +50,7 @@ impl event::EventHandler for MainState {
                 board::WHITE
             };
 
-        } else if true {
+        } else if self.board.turn == board::BLACK {
             let mut start_square = 0;
             let mut end_square = 0;
             if self.difficulty == ai::EASY {
@@ -60,6 +60,7 @@ impl event::EventHandler for MainState {
                 println!("{}", self.board.promoted);
                 self.board.promoted_piece = start_square as u8;
                 self.board = moves::promote_piece(board::copy_board(&self.board));
+                self.board_promoted_piece = 0;
             } else {
                 self.board = moves::make_move(board_copy, start_square, end_square);
             }
@@ -179,7 +180,11 @@ impl event::EventHandler for MainState {
             let x: f32 = 200.0;
             let y: f32 = 300.0;
             let pieces: [u8;4] = [board::ROOK, board::KNIGHT, board::BISHOP, board::QUEEN];
-            let color: u8 = self.board.turn;
+            let color: u8 = if self.board.turn == board::WHITE {
+                board::BLACK
+            } else {
+                board::WHITE
+            };
             for i in 0..4 {
                 let curr_square = graphics::Rect::new(x + i as f32 * 100.0, y, SQUARE_SIZE, SQUARE_Y);
                 let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, graphics::Color::WHITE)?;

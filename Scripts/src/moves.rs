@@ -624,11 +624,6 @@ pub fn promote_piece(mut board: Box<board::Board>) -> Box<board::Board> {
     } else if board.promoted_piece == QUEEN {
         board.queens |= 1 << board.promoted;
     }
-    if board.turn == WHITE {
-        board.turn = BLACK;
-    } else {
-        board.turn = WHITE;
-    }
     board.pawns &= (((1 << 63) - 1) + (1 << 63)) - (1 << board.promoted);
     board.promoted = -1;
     board
