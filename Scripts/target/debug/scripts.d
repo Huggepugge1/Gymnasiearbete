@@ -1,1 +1,0 @@
-/home/huggepugge/Gymnasiearbete/Scripts/target/debug/scripts: /home/huggepugge/Gymnasiearbete/Scripts/src/ai.rs /home/huggepugge/Gymnasiearbete/Scripts/src/board.rs /home/huggepugge/Gymnasiearbete/Scripts/src/gui.rs /home/huggepugge/Gymnasiearbete/Scripts/src/main.rs /home/huggepugge/Gymnasiearbete/Scripts/src/moves.rs
