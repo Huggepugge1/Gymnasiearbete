@@ -12,6 +12,8 @@ use crate::{board, moves};
 use crate::MainState;
 use crate::ai;
 
+use std::time::{Instant};
+
 const SQUARE_SIZE: f32 = 100.0;
 const SQUARE_Y: f32 = 0.75 * SQUARE_SIZE;
 
@@ -41,16 +43,19 @@ impl event::EventHandler for MainState {
         }
 
         else if self.board.turn == board::BLACK {
+            let now = Instant::now();
             let current_move: moves::Move = if self.difficulty == ai::EASY {
                 ai::random_move(&self.board)
             } else if self.difficulty == ai::HARD {
-                ai::min_max(&self.board, 3).0
+                ai::min_max(&self.board, 3, -10000000000).0
             } else {
                 moves::Move {
                     start: -1,
                     end: -1
                 }
             };
+            let new_now = Instant::now();
+            println!("{:?}", new_now.duration_since(now));
             if self.board.promoted != -1 {
                 self.board.promoted_piece = current_move.start as u8;
                 self.board = moves::promote_piece(board::copy_board(&self.board));

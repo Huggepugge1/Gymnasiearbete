@@ -18,9 +18,9 @@ pub struct Distance {
     pub ranks: i8,
 }
 
-#[derive(Clone)]
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub struct Move {
     pub start: i8,
     pub end: i8,
@@ -369,7 +369,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
         if piece.color == WHITE {
             if board.castling & 1 == 1 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 2) - 1) << 5 == 0 && board.black_pieces & ((1 << 2) - 1) << 5 == 0 {
+                if (board.white_pieces | board.black_pieces) & ((1 << 2) - 1) << 5 == 0 {
                     // Can't castle if check is anywhere from current_move.starting square to current_move.end square
                     if check_castling(board, pos, 1) {
                         moves |= 1 << (pos + 2);
@@ -378,7 +378,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
             }
             if board.castling & 2 == 2 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 3) - 1) << 1 == 0 && board.black_pieces & ((1 << 3) - 1) << 1 == 0 {
+                if (board.white_pieces | board.black_pieces) & ((1 << 3) - 1) << 1 == 0 {
                     // Can't castle if check is anywhere from current_move.starting square to current_move.end square
                     if check_castling(board, pos, -1) {
                         moves |= 1 << (pos - 2);
@@ -388,7 +388,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
         } else {
             if board.castling & 4 == 4 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 2) - 1) << 61 == 0 && board.black_pieces & ((1 << 2) - 1) << 61 == 0 {
+                if (board.white_pieces | board.black_pieces) & ((1 << 2) - 1) << 61 == 0 {
                     // Can't castle if check is anywhere from current_move.starting square to current_move.end square
                     if check_castling(board, pos, 1) {
                         moves |= 1 << (pos + 2);
@@ -397,7 +397,7 @@ pub fn gen_king_moves(board: &board::Board, pos: i8) -> u64 {
             }
             if board.castling & 8 == 8 {
                 // Can't castle if something is in the way
-                if board.white_pieces & ((1 << 3) - 1) << 57 == 0 && board.black_pieces & ((1 << 3) - 1) << 57 == 0 {
+                if (board.white_pieces |board.black_pieces) & ((1 << 3) - 1) << 57 == 0 {
                     // Can't castle if check is anywhere from current_move.starting square to current_move.end square
                     if check_castling(board, pos, -1) {
                         moves |= 1 << (pos - 2);
@@ -630,7 +630,7 @@ pub fn make_move(mut board: board::Board, current_move: Move) -> board::Board {
     if piece.piece_type != PAWN {
         board.en_passant = 0;
     }
-    if check(&board, board::get_king_pos(&board, board.turn)) {
+    if check(&board, board::get_king_pos(&board)) {
         return board_copy;
     } else if board.promoted == -1 {
         board.turn = if board.turn == WHITE {

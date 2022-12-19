@@ -72,8 +72,8 @@ pub fn get_piece(board: &Board, pos: i8) -> Piece {
     Piece{color, piece_type}
 }
 
-pub fn get_king_pos(board: &Board, color: u8) -> i8 {
-    let king_bit_board = if color == WHITE {
+pub fn get_king_pos(board: &Board) -> i8 {
+    let king_bit_board = if board.turn == WHITE {
         board.white_pieces & board.kings
     } else {
         board.black_pieces & board.kings
