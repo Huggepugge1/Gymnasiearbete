@@ -47,7 +47,7 @@ impl event::EventHandler for MainState {
             let current_move: moves::Move = if self.difficulty == ai::EASY {
                 ai::random_move(&self.board)
             } else if self.difficulty == ai::HARD {
-                ai::min_max(&self.board, 3, -10000000000).0
+                ai::min_max(&self.board, 3, -10000000000.0).0
             } else {
                 moves::Move {
                     start: -1,

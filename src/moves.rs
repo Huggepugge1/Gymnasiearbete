@@ -439,6 +439,7 @@ pub fn check_castling(board: &board::Board, pos: i8, offset: i8) -> bool {
 pub fn make_move(mut board: board::Board, current_move: Move) -> board::Board {
     let board_copy: board::Board = board::copy_board(&board);
     let piece = board::get_piece(&board, current_move.start);
+    let enemy_piece = board::get_piece(&board, current_move.end);
     // Makes sure the piece you are trying to move is of your color
     if piece.color != board.turn {
         return board;
@@ -590,8 +591,6 @@ pub fn make_move(mut board: board::Board, current_move: Move) -> board::Board {
         }
     }
 
-    // This part deletes the potential piece on the current_move.end square
-    let enemy_piece = board::get_piece(&board, current_move.end);
     // Makes sure the piece trying to move is not deleted and also checks that the current_move.end square is not empty
     if piece.piece_type != PAWN && enemy_piece.piece_type != piece.piece_type && enemy_piece.piece_type != EMPTY {
         if enemy_piece.piece_type == PAWN {
