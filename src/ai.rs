@@ -41,7 +41,7 @@ pub fn piece_score(pieces: u64) -> f64 {
     let mut score: f64 = 0.0;
     for i in 0..64 {
         if pieces & (1 << i) > 0 {
-            score += 1.0 + (1.0 - f64::abs(3.5 - i as f64 % 8.0) / 3.5 * (1.0 - (f64::)abs(3.5 - i as f64 / 8.0);
+            score += 1.0 + (1.0 - f64::abs(3.5 - i as f64 % 8.0) / 3.5) * (1.0 - (f64::abs(3.5 - i as f64 / 8.0) / 3.5));
             // score += 1;
         }
     }

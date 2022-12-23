@@ -16,7 +16,8 @@ pub struct MainState {
     pub frame: i8,
 
     pub board: board::Board,
-    pub difficulty: i8
+    pub difficulty: i8,
+    pub last_move: moves::Move,
 }
 
 impl MainState {
@@ -26,13 +27,17 @@ impl MainState {
             number_of_selected_squares: 0,
             current_move: moves::Move {
                 start: 0,
-                end: 0
+                end: 0,
             },
             needs_refresh: true,
             frame: 0,
 
             board: board::create_board(),
-            difficulty: ai::HARD
+            difficulty: ai::HARD,
+            last_move: moves::Move {
+                start: -1,
+                end: -1,
+            },
         }
     }
 }

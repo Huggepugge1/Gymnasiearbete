@@ -65,6 +65,10 @@ impl event::EventHandler for MainState {
                     start: current_move.start,
                     end: current_move.end
                 });
+                self.last_move = moves::Move {
+                    start: current_move.start,
+                    end: current_move.end,
+                };
             }
             self.number_of_selected_squares = 0;
             self.selected_squares = [false; 64];
@@ -78,6 +82,10 @@ impl event::EventHandler for MainState {
                 start: self.current_move.start,
                 end: self.current_move.end
             });
+            self.last_move = moves::Move {
+                start: self.current_move.start,
+                end: self.current_move.end
+            };
             self.number_of_selected_squares = 0;
             self.selected_squares = [false; 64];
             self.needs_refresh = true;
@@ -130,14 +138,16 @@ impl event::EventHandler for MainState {
 
             let piece: board::Piece = board::get_piece(&self.board, square as i8);
 
-            if !self.selected_squares[square as usize] {
-                let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, colors[color])?;
-                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
-            } else {
+            if self.selected_squares[square as usize] {
                 let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, selected_colors[color as usize])?;
                 graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
+            } else if self.last_move.start == square as i8 || self.last_move.end == square as i8 {
+                let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, graphics::Color::RED)?;
+                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
+            } else {
+                let curr_square_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), curr_square, colors[color])?;
+                graphics::draw(ctx, &curr_square_mesh, graphics::DrawParam::default())?;
             }
-
 
             if piece.piece_type != board::EMPTY {
                 let path: String = format!("/{0}_{1}.png", piece_link[&piece.color], piece_link[&piece.piece_type]);
