@@ -6,3 +6,4 @@ incremental
 .cargo-lock
 .rustc_info.json
 CACHEDIR.TAG
+*.png
